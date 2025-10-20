@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maschinen Prüfsystem</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#2a5298">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Login Screen */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            position: relative;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.5;
+        }
+
+        .login-box {
+            background: white;
+            padding: 60px 50px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            text-align: center;
+            min-width: 420px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-box h1 {
+            color: #1a202c;
+            margin-bottom: 40px;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        .login-box input:focus {
+            outline: none;
+            border-color: #2a5298;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(42, 82, 152, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(42, 82, 152, 0.4);
+        }
+
+        /* Main Container */
+        .main-container {
+            display: flex;
+            height: 100vh;
+            background: #ecf0f1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 100px;
+            background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 10px;
+            box-shadow: 2px 0 24px rgba(0,0,0,0.08);
+        }
+
+        .user-profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 16px rgba(42, 82, 152, 0.4);
+        }
+
+        .user-name {
+            color: white;
+            font-size: 11px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .sidebar-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            margin: 6px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            font-size: 24px;
+            color: rgba(255,255,255,0.85);
+        }
+
+        .sidebar-btn:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+        }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        /* Machine Card */
+        .machine-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .machine-header {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .machine-image {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .machine-info {
+            flex: 1;
+        }
+
+        .machine-name {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 15px;
+        }
+
+        .part-selector {
+            width: 100%;
+            padding: 14px 18px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .part-selector:focus {
+            outline: none;
+            border-color: #2a5298;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .action-btn {
+            padding: 24px;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: white;
+        }
+
+        .btn-complete {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-complete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-störung {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-störung:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 44px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-content h2 {
+            color: #1a202c;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #2a5298;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn-secondary {
+            flex: 1;
+            padding: 14px 20px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            color: #1a202c;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+        }
+
+        .btn-secondary:hover {
+            border-color: #2a5298;
+            background: #f8fafc;
+            color: #2a5298;
+        }
+
+        /* Störung Options */
+        .störung-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .störung-option {
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        .störung-option:hover {
+            border-color: #f59e0b;
+            background: white;
+        }
+
+        .störung-option.selected {
+            border-color: #f59e0b;
+            background: #fffbeb;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        }
+
+        .störung-option h3 {
+            font-size: 18px;
+            color: #1a202c;
+            font-weight: 600;
+        }
+
+        .timeline-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #e2e8f0;
+            outline: none;
+            -webkit-appearance: none;
+            margin: 20px 0;
+        }
+
+        .timeline-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #f59e0b;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+        }
+
+        .timeline-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #f59e0b;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+        }
+
+        .timeline-value {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: #f59e0b;
+            margin-top: 15px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes popIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-box">
+            <h1>🏭 Maschinen Prüfsystem</h1>
+            <input type="text" id="prüfnummer" placeholder="Prüfnummer eingeben" maxlength="10">
+            <button class="btn-primary" onclick="login()">Anmelden</button>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="main-container hidden">
+        <div class="sidebar">
+            <div class="user-profile">
+                <div class="user-avatar">👤</div>
+                <div class="user-name" id="userName">Prüfer</div>
+            </div>
+            <button class="sidebar-btn" onclick="logout()" title="Abmelden">🚪</button>
+        </div>
+
+        <div class="content">
+            <div class="machine-card">
+                <div class="machine-header">
+                    <div class="machine-image">⚙️</div>
+                    <div class="machine-info">
+                        <h1 class="machine-name">Maschine 01</h1>
+                        <label style="font-weight: 600; display: block; margin-bottom: 10px;">Aktuelles Teil:</label>
+                        <select class="part-selector" id="partSelector">
+                            <option value="Housing A">Housing A</option>
+                            <option value="Housing B">Housing B</option>
+                            <option value="Deckel XL">Deckel XL</option>
+                            <option value="Gehäuse Pro">Gehäuse Pro</option>
+                            <option value="Basis Modul">Basis Modul</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="action-btn btn-complete" onclick="openPrüfungModal()">
+                        ✓ Prüfung abgeschlossen
+                    </button>
+                    <button class="action-btn btn-störung" onclick="openStörungModal()">
+                        ⚠️ Störungen
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let state = {
+            prüfnummer: '',
+            currentPart: 'Housing A',
+            prüfungen: [],
+            störungen: []
+        };
+
+        function login() {
+            const input = document.getElementById('prüfnummer');
+            if (input.value.trim()) {
+                state.prüfnummer = input.value.trim();
+                document.getElementById('userName').textContent = 'P-' + state.prüfnummer;
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            if (confirm('Möchten Sie sich wirklich abmelden?')) {
+                state.prüfnummer = '';
+                document.getElementById('prüfnummer').value = '';
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+            }
+        }
+
+        function openPrüfungModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'prüfungModal';
+            modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h2>✓ Prüfung abgeschlossen</h2>
+                    <div class="input-group">
+                        <label>i.O. Teileanzahl:</label>
+                        <input type="number" id="ioCount" min="0" value="0">
+                    </div>
+                    <div class="input-group">
+                        <label>n.i.O. Teileanzahl:</label>
+                        <input type="number" id="nioCount" min="0" value="0">
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+                        <button class="btn-primary" onclick="savePrüfung()">Bestätigen</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function savePrüfung() {
+            const ioCount = parseInt(document.getElementById('ioCount').value) || 0;
+            const nioCount = parseInt(document.getElementById('nioCount').value) || 0;
+            const prüfung = {
+                timestamp: new Date().toISOString(),
+                prüfnummer: state.prüfnummer,
+                part: state.currentPart,
+                io: ioCount,
+                nio: nioCount
+            };
+            state.prüfungen.push(prüfung);
+            console.log('Prüfung gespeichert:', prüfung);
+            closeModal();
+            showSuccess('Prüfung erfolgreich gespeichert!');
+        }
+
+        function openStörungModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'störungModal';
+            modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h2>⚠️ Störung melden</h2>
+                    <div class="störung-options">
+                        <div class="störung-option" onclick="selectStörung(this, 'Technischer Defekt')">
+                            <h3>🔧 Technischer Defekt</h3>
+                        </div>
+                        <div class="störung-option" onclick="selectStörung(this, 'Material fehlt')">
+                            <h3>📦 Material fehlt</h3>
+                        </div>
+                        <div class="störung-option" onclick="selectStörung(this, 'Qualitätsproblem')">
+                            <h3>⚠️ Qualitätsproblem</h3>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Dauer in Minuten:</label>
+                        <input type="range" class="timeline-slider" id="störungDuration" min="1" max="120" value="30" oninput="updateDuration()">
+                        <div class="timeline-value" id="durationDisplay">30 min</div>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+                        <button class="btn-primary" onclick="saveStörung()">Bestätigen</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        let selectedStörung = null;
+        function selectStörung(el, type) {
+            document.querySelectorAll('.störung-option').forEach(e => e.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedStörung = type;
+        }
+
+        function updateDuration() {
+            const val = document.getElementById('störungDuration').value;
+            document.getElementById('durationDisplay').textContent = val + ' min';
+        }
+
+        function saveStörung() {
+            if (!selectedStörung) {
+                alert('Bitte wählen Sie eine Störung aus!');
+                return;
+            }
+            const duration = parseInt(document.getElementById('störungDuration').value);
+            const störung = {
+                timestamp: new Date().toISOString(),
+                prüfnummer: state.prüfnummer,
+                type: selectedStörung,
+                duration: duration
+            };
+            state.störungen.push(störung);
+            console.log('Störung gespeichert:', störung);
+            closeModal();
+            selectedStörung = null;
+            showSuccess('Störung erfolgreich gemeldet!');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('prüfungModal') || document.getElementById('störungModal');
+            if (modal) modal.remove();
+        }
+
+        function showSuccess(msg) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `position: fixed; top: 30px; right: 30px; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 20px 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4); font-weight: 600; z-index: 10000;`;
+            toast.textContent = '✓ ' + msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        document.getElementById('prüfnummer').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
+        });
+
+        document.getElementById('partSelector').addEventListener('change', (e) => {
+            state.currentPart = e.target.value;
+        });
+    </script>
+</body>
+</html>
