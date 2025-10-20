@@ -181,6 +181,45 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
+        }
+
+        .content::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .content.machine-active::before {
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+            animation: glowPulse 4s ease-in-out infinite;
+            opacity: 1;
+        }
+
+        .content.machine-inactive::before {
+            background: radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, transparent 70%);
+            animation: glowPulse 4s ease-in-out infinite;
+            opacity: 1;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(0.8);
+                opacity: 0.3;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 0.6;
+            }
         }
 
         /* Machine Card */
@@ -194,6 +233,8 @@
             display: flex;
             flex-direction: column;
             height: calc(100vh - 60px);
+            position: relative;
+            z-index: 1;
         }
 
         .machine-header {
@@ -294,6 +335,8 @@
         .part-selection-area {
             grid-column: 1 / 2;
             grid-row: 3 / 4;
+            display: flex;
+            flex-direction: column;
         }
 
         .part-selector-wrapper {
@@ -304,6 +347,7 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
+            flex: 1;
         }
 
         .part-label {
@@ -912,6 +956,17 @@
                 document.getElementById('userName').textContent = 'P-' + state.prüfnummer;
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.remove('hidden');
+                updateContentGlow();
+            }
+        }
+
+        function updateContentGlow() {
+            const content = document.querySelector('.content');
+            content.classList.remove('machine-active', 'machine-inactive');
+            if (state.machineActive) {
+                content.classList.add('machine-active');
+            } else {
+                content.classList.add('machine-inactive');
             }
         }
 
@@ -1214,7 +1269,7 @@
         }
 
         function closeModal() {
-            const modal = document.getElementById('prüfungModal') || document.getElementById('störungModal') || document.getElementById('databaseModal');
+            const modal = document.getElementById('prüfungModal') || document.getElementById('störungModal') || document.getElementById('databaseModal') || document.getElementById('partModal');
             if (modal) modal.remove();
         }
 
@@ -1244,6 +1299,7 @@
                 toggle.classList.add('inactive');
                 text.textContent = 'Außer Betrieb';
             }
+            updateContentGlow();
         }
 
         function openPartModal() {
