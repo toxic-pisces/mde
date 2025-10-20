@@ -163,11 +163,24 @@
             transform: translateY(-2px);
         }
 
+        .sidebar-btn.database-btn {
+            margin-top: auto;
+            background: rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .sidebar-btn.database-btn:hover {
+            background: rgba(16, 185, 129, 0.3);
+        }
+
         /* Content Area */
         .content {
             flex: 1;
             padding: 30px;
-            overflow-y: auto;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* Machine Card */
@@ -176,8 +189,11 @@
             border-radius: 20px;
             padding: 40px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-            max-width: 900px;
-            margin: 0 auto;
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 60px);
         }
 
         .machine-header {
@@ -233,7 +249,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
-            margin-top: 30px;
+            margin-top: auto;
         }
 
         .action-btn {
@@ -285,53 +301,289 @@
             justify-content: center;
             z-index: 2000;
             animation: fadeIn 0.3s ease-out;
+            padding: 20px;
         }
 
         .modal-content {
             background: white;
-            padding: 44px;
             border-radius: 20px;
-            max-width: 600px;
-            width: 90%;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
             box-shadow: 0 24px 60px rgba(0,0,0,0.2);
             animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .modal-content h2 {
+        .modal-header {
+            padding: 30px 40px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .modal-header h2 {
             color: #1a202c;
-            margin-bottom: 30px;
             font-size: 28px;
             font-weight: 700;
+            margin: 0;
+        }
+
+        .modal-body {
+            padding: 40px;
+        }
+
+        /* Number Input Display */
+        .number-input-display {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 3px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .number-input-display.active {
+            border-color: #2a5298;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            box-shadow: 0 0 0 4px rgba(42, 82, 152, 0.1);
+        }
+
+        .number-input-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+        }
+
+        .number-input-value {
+            font-size: 72px;
+            font-weight: 700;
+            color: #1a202c;
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+            letter-spacing: -2px;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .number-input-value.empty {
+            color: #cbd5e1;
+        }
+
+        /* Numpad */
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .numpad-btn {
+            aspect-ratio: 1;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 32px;
+            font-weight: 600;
+            color: #1a202c;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .numpad-btn:hover {
+            background: #f8fafc;
+            border-color: #2a5298;
+            transform: scale(1.05);
+        }
+
+        .numpad-btn:active {
+            transform: scale(0.95);
+            background: #2a5298;
+            color: white;
+        }
+
+        .numpad-btn.special {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            font-size: 28px;
+        }
+
+        .numpad-btn.special:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+        }
+
+        .numpad-btn.wide {
+            grid-column: span 2;
+        }
+
+        /* Input Tabs */
+        .input-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .input-tab {
+            padding: 20px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
             text-align: center;
         }
 
-        .input-group {
-            margin-bottom: 24px;
+        .input-tab:hover {
+            background: white;
+            border-color: #cbd5e1;
         }
 
-        .input-group label {
-            display: block;
+        .input-tab.active {
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(42, 82, 152, 0.3);
+        }
+
+        .input-tab-label {
+            font-size: 14px;
             font-weight: 600;
-            color: #475569;
-            margin-bottom: 10px;
-            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
 
-        .input-group input {
-            width: 100%;
-            padding: 16px 20px;
-            font-size: 18px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
+        .input-tab-value {
+            font-size: 36px;
+            font-weight: 700;
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+        }
+
+        /* Database Modal */
+        .database-modal-content {
+            max-width: 1200px;
+        }
+
+        .database-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 40px;
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .database-header h2 {
+            color: white;
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .database-close-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: all 0.2s;
+        }
+
+        .database-close-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .database-body {
+            padding: 40px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table thead {
+            background: #f8fafc;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #64748b;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .data-table td {
+            padding: 16px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 15px;
+            color: #1a202c;
+        }
+
+        .data-table tbody tr:hover {
             background: #f8fafc;
         }
 
-        .input-group input:focus {
-            outline: none;
-            border-color: #2a5298;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        .data-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .data-badge.io {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .data-badge.nio {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .data-badge.störung {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+            color: #64748b;
+            font-weight: 600;
         }
 
         .modal-buttons {
@@ -472,6 +724,7 @@
                 <div class="user-avatar">👤</div>
                 <div class="user-name" id="userName">Prüfer</div>
             </div>
+            <button class="sidebar-btn database-btn" onclick="openDatabase()" title="Datenbank">🗄️</button>
             <button class="sidebar-btn" onclick="logout()" title="Abmelden">🚪</button>
         </div>
 
@@ -531,7 +784,13 @@
             }
         }
 
+        let currentInputField = 'io';
+        let inputValues = { io: '', nio: '' };
+
         function openPrüfungModal() {
+            currentInputField = 'io';
+            inputValues = { io: '', nio: '' };
+
             const modal = document.createElement('div');
             modal.className = 'modal';
             modal.id = 'prüfungModal';
@@ -539,38 +798,113 @@
 
             modal.innerHTML = `
                 <div class="modal-content">
-                    <h2>✓ Prüfung abgeschlossen</h2>
-                    <div class="input-group">
-                        <label>i.O. Teileanzahl:</label>
-                        <input type="number" id="ioCount" min="0" value="0">
+                    <div class="modal-header">
+                        <h2>✓ Prüfung abgeschlossen</h2>
                     </div>
-                    <div class="input-group">
-                        <label>n.i.O. Teileanzahl:</label>
-                        <input type="number" id="nioCount" min="0" value="0">
-                    </div>
-                    <div class="modal-buttons">
-                        <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
-                        <button class="btn-primary" onclick="savePrüfung()">Bestätigen</button>
+                    <div class="modal-body">
+                        <div class="input-tabs">
+                            <div class="input-tab active" id="tab-io" onclick="switchInputField('io')">
+                                <div class="input-tab-label">i.O. Teile</div>
+                                <div class="input-tab-value" id="display-io">0</div>
+                            </div>
+                            <div class="input-tab" id="tab-nio" onclick="switchInputField('nio')">
+                                <div class="input-tab-label">n.i.O. Teile</div>
+                                <div class="input-tab-value" id="display-nio">0</div>
+                            </div>
+                        </div>
+
+                        <div class="number-input-display active" id="activeDisplay">
+                            <div class="number-input-label" id="activeLabel">i.O. Teileanzahl eingeben</div>
+                            <div class="number-input-value" id="activeValue">0</div>
+                        </div>
+
+                        <div class="numpad">
+                            <button class="numpad-btn" onclick="addDigit('7')">7</button>
+                            <button class="numpad-btn" onclick="addDigit('8')">8</button>
+                            <button class="numpad-btn" onclick="addDigit('9')">9</button>
+                            <button class="numpad-btn" onclick="addDigit('4')">4</button>
+                            <button class="numpad-btn" onclick="addDigit('5')">5</button>
+                            <button class="numpad-btn" onclick="addDigit('6')">6</button>
+                            <button class="numpad-btn" onclick="addDigit('1')">1</button>
+                            <button class="numpad-btn" onclick="addDigit('2')">2</button>
+                            <button class="numpad-btn" onclick="addDigit('3')">3</button>
+                            <button class="numpad-btn special" onclick="clearInput()">⌫</button>
+                            <button class="numpad-btn" onclick="addDigit('0')">0</button>
+                            <button class="numpad-btn special" onclick="clearAll()">C</button>
+                        </div>
+
+                        <div class="modal-buttons">
+                            <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+                            <button class="btn-primary" onclick="savePrüfung()">Bestätigen</button>
+                        </div>
                     </div>
                 </div>
             `;
             document.body.appendChild(modal);
+            updateDisplay();
+        }
+
+        function switchInputField(field) {
+            currentInputField = field;
+            document.getElementById('tab-io').classList.toggle('active', field === 'io');
+            document.getElementById('tab-nio').classList.toggle('active', field === 'nio');
+            
+            const label = field === 'io' ? 'i.O. Teileanzahl eingeben' : 'n.i.O. Teileanzahl eingeben';
+            document.getElementById('activeLabel').textContent = label;
+            updateDisplay();
+        }
+
+        function addDigit(digit) {
+            if (inputValues[currentInputField].length < 4) {
+                inputValues[currentInputField] += digit;
+                updateDisplay();
+            }
+        }
+
+        function clearInput() {
+            inputValues[currentInputField] = inputValues[currentInputField].slice(0, -1);
+            updateDisplay();
+        }
+
+        function clearAll() {
+            inputValues[currentInputField] = '';
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const value = inputValues[currentInputField] || '0';
+            document.getElementById('activeValue').textContent = value;
+            document.getElementById('display-io').textContent = inputValues.io || '0';
+            document.getElementById('display-nio').textContent = inputValues.nio || '0';
         }
 
         function savePrüfung() {
-            const ioCount = parseInt(document.getElementById('ioCount').value) || 0;
-            const nioCount = parseInt(document.getElementById('nioCount').value) || 0;
+            const ioCount = parseInt(inputValues.io) || 0;
+            const nioCount = parseInt(inputValues.nio) || 0;
+            
+            const now = new Date();
+            const timestamp = now.toLocaleString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
             const prüfung = {
-                timestamp: new Date().toISOString(),
+                id: Date.now(),
+                timestamp: timestamp,
                 prüfnummer: state.prüfnummer,
                 part: state.currentPart,
                 io: ioCount,
-                nio: nioCount
+                nio: nioCount,
+                total: ioCount + nioCount,
+                type: 'prüfung'
             };
             state.prüfungen.push(prüfung);
             console.log('Prüfung gespeichert:', prüfung);
             closeModal();
-            showSuccess('Prüfung erfolgreich gespeichert!');
+            showSuccess(`Prüfung gespeichert: ${ioCount} i.O. / ${nioCount} n.i.O.`);
         }
 
         function openStörungModal() {
@@ -625,17 +959,110 @@
                 return;
             }
             const duration = parseInt(document.getElementById('störungDuration').value);
+            
+            const now = new Date();
+            const timestamp = now.toLocaleString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
             const störung = {
-                timestamp: new Date().toISOString(),
+                id: Date.now(),
+                timestamp: timestamp,
                 prüfnummer: state.prüfnummer,
                 type: selectedStörung,
-                duration: duration
+                duration: duration,
+                störungType: 'störung'
             };
             state.störungen.push(störung);
             console.log('Störung gespeichert:', störung);
             closeModal();
             selectedStörung = null;
-            showSuccess('Störung erfolgreich gemeldet!');
+            showSuccess(`Störung gemeldet: ${selectedStörung} (${duration} Min)`);
+        }
+
+        function openDatabase() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'databaseModal';
+            modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+            const allEntries = [
+                ...state.prüfungen.map(p => ({...p, entryType: 'prüfung'})),
+                ...state.störungen.map(s => ({...s, entryType: 'störung'}))
+            ].sort((a, b) => b.id - a.id);
+
+            let tableContent = '';
+            if (allEntries.length === 0) {
+                tableContent = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📊</div>
+                        <div class="empty-state-text">Noch keine Einträge vorhanden</div>
+                    </div>
+                `;
+            } else {
+                const rows = allEntries.map(entry => {
+                    if (entry.entryType === 'prüfung') {
+                        return `
+                            <tr>
+                                <td>${entry.timestamp}</td>
+                                <td><span class="data-badge io">Prüfung</span></td>
+                                <td>${entry.prüfnummer}</td>
+                                <td>${entry.part}</td>
+                                <td><span class="data-badge io">${entry.io} i.O.</span></td>
+                                <td><span class="data-badge nio">${entry.nio} n.i.O.</span></td>
+                                <td>${entry.total} Teile</td>
+                            </tr>
+                        `;
+                    } else {
+                        return `
+                            <tr>
+                                <td>${entry.timestamp}</td>
+                                <td><span class="data-badge störung">Störung</span></td>
+                                <td>${entry.prüfnummer}</td>
+                                <td>${entry.type}</td>
+                                <td colspan="2">${entry.duration} Minuten</td>
+                                <td>-</td>
+                            </tr>
+                        `;
+                    }
+                }).join('');
+
+                tableContent = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Zeitstempel</th>
+                                <th>Typ</th>
+                                <th>Prüfer</th>
+                                <th>Details</th>
+                                <th>i.O.</th>
+                                <th>n.i.O.</th>
+                                <th>Gesamt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            modal.innerHTML = `
+                <div class="modal-content database-modal-content">
+                    <div class="database-header">
+                        <h2>🗄️ Datenbank</h2>
+                        <button class="database-close-btn" onclick="closeModal()">×</button>
+                    </div>
+                    <div class="database-body">
+                        ${tableContent}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
         }
 
         function closeModal() {
