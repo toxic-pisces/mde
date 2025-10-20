@@ -77,6 +77,73 @@
             box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
         }
 
+        .login-display {
+            width: 100%;
+            padding: 20px;
+            font-size: 32px;
+            font-weight: 700;
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            background: #f8fafc;
+            text-align: center;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a202c;
+        }
+
+        .login-display.empty {
+            color: #cbd5e1;
+        }
+
+        .login-numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .login-numpad-btn {
+            aspect-ratio: 1;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a202c;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-numpad-btn:hover {
+            background: #f8fafc;
+            border-color: #2a5298;
+            transform: scale(1.05);
+        }
+
+        .login-numpad-btn:active {
+            transform: scale(0.95);
+            background: #2a5298;
+            color: white;
+        }
+
+        .login-numpad-btn.special {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            font-size: 20px;
+        }
+
+        .login-numpad-btn.special:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+        }
+
         .btn-primary {
             width: 100%;
             padding: 16px;
@@ -877,7 +944,21 @@
     <div id="loginScreen" class="login-container">
         <div class="login-box">
             <h1>🏭 Maschinen Prüfsystem</h1>
-            <input type="text" id="prüfnummer" placeholder="Prüfnummer eingeben" maxlength="10">
+            <div class="login-display empty" id="loginDisplay">Prüfnummer</div>
+            <div class="login-numpad">
+                <button class="login-numpad-btn" onclick="addLoginDigit('7')">7</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('8')">8</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('9')">9</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('4')">4</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('5')">5</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('6')">6</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('1')">1</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('2')">2</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('3')">3</button>
+                <button class="login-numpad-btn special" onclick="clearLoginInput()">⌫</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('0')">0</button>
+                <button class="login-numpad-btn special" onclick="clearAllLogin()">C</button>
+            </div>
             <button class="btn-primary" onclick="login()">Anmelden</button>
         </div>
     </div>
@@ -947,14 +1028,45 @@
             'Basis Modul'
         ];
 
+        let loginValue = '';
+
+        function addLoginDigit(digit) {
+            if (loginValue.length < 10) {
+                loginValue += digit;
+                updateLoginDisplay();
+            }
+        }
+
+        function clearLoginInput() {
+            loginValue = loginValue.slice(0, -1);
+            updateLoginDisplay();
+        }
+
+        function clearAllLogin() {
+            loginValue = '';
+            updateLoginDisplay();
+        }
+
+        function updateLoginDisplay() {
+            const display = document.getElementById('loginDisplay');
+            if (loginValue === '') {
+                display.textContent = 'Prüfnummer';
+                display.classList.add('empty');
+            } else {
+                display.textContent = loginValue;
+                display.classList.remove('empty');
+            }
+        }
+
         function login() {
-            const input = document.getElementById('prüfnummer');
-            if (input.value.trim()) {
-                state.prüfnummer = input.value.trim();
+            if (loginValue.trim()) {
+                state.prüfnummer = loginValue.trim();
                 document.getElementById('userName').textContent = 'P-' + state.prüfnummer;
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.remove('hidden');
                 updateContentGlow();
+                loginValue = '';
+                updateLoginDisplay();
             }
         }
 
@@ -971,7 +1083,8 @@
         function logout() {
             if (confirm('Möchten Sie sich wirklich abmelden?')) {
                 state.prüfnummer = '';
-                document.getElementById('prüfnummer').value = '';
+                loginValue = '';
+                updateLoginDisplay();
                 document.getElementById('loginScreen').classList.remove('hidden');
                 document.getElementById('mainApp').classList.add('hidden');
             }
@@ -1279,9 +1392,7 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        document.getElementById('prüfnummer').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') login();
-        });
+
 
         function toggleStatus() {
             state.machineActive = !state.machineActive;
