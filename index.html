@@ -204,8 +204,8 @@
         }
 
         .machine-image {
-            width: 200px;
-            height: 200px;
+            width: 280px;
+            height: 280px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 16px;
             display: flex;
@@ -213,6 +213,13 @@
             justify-content: center;
             font-size: 80px;
             box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+            overflow: hidden;
+        }
+
+        .machine-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .machine-info {
@@ -329,6 +336,30 @@
 
         .modal-body {
             padding: 40px;
+        }
+
+        /* Responsive Numpad Layout */
+        @media (min-width: 900px) and (orientation: landscape) {
+            .modal-content {
+                max-width: 1000px;
+            }
+
+            .numpad-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 40px;
+                align-items: start;
+            }
+
+            .numpad-left {
+                display: flex;
+                flex-direction: column;
+                gap: 30px;
+            }
+
+            .numpad {
+                margin-bottom: 0;
+            }
         }
 
         /* Number Input Display */
@@ -731,7 +762,9 @@
         <div class="content">
             <div class="machine-card">
                 <div class="machine-header">
-                    <div class="machine-image">⚙️</div>
+                    <div class="machine-image">
+                        <img src="./images/machine.jpg" alt="Maschine" onerror="this.style.display='none'; this.parentElement.innerHTML='⚙️';">
+                    </div>
                     <div class="machine-info">
                         <h1 class="machine-name">Maschine 01</h1>
                         <label style="font-weight: 600; display: block; margin-bottom: 10px;">Aktuelles Teil:</label>
@@ -802,40 +835,44 @@
                         <h2>✓ Prüfung abgeschlossen</h2>
                     </div>
                     <div class="modal-body">
-                        <div class="input-tabs">
-                            <div class="input-tab active" id="tab-io" onclick="switchInputField('io')">
-                                <div class="input-tab-label">i.O. Teile</div>
-                                <div class="input-tab-value" id="display-io">0</div>
+                        <div class="numpad-container">
+                            <div class="numpad-left">
+                                <div class="input-tabs">
+                                    <div class="input-tab active" id="tab-io" onclick="switchInputField('io')">
+                                        <div class="input-tab-label">i.O. Teile</div>
+                                        <div class="input-tab-value" id="display-io">0</div>
+                                    </div>
+                                    <div class="input-tab" id="tab-nio" onclick="switchInputField('nio')">
+                                        <div class="input-tab-label">n.i.O. Teile</div>
+                                        <div class="input-tab-value" id="display-nio">0</div>
+                                    </div>
+                                </div>
+
+                                <div class="number-input-display active" id="activeDisplay">
+                                    <div class="number-input-label" id="activeLabel">i.O. Teileanzahl eingeben</div>
+                                    <div class="number-input-value" id="activeValue">0</div>
+                                </div>
+
+                                <div class="modal-buttons">
+                                    <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+                                    <button class="btn-primary" onclick="savePrüfung()">Bestätigen</button>
+                                </div>
                             </div>
-                            <div class="input-tab" id="tab-nio" onclick="switchInputField('nio')">
-                                <div class="input-tab-label">n.i.O. Teile</div>
-                                <div class="input-tab-value" id="display-nio">0</div>
+
+                            <div class="numpad">
+                                <button class="numpad-btn" onclick="addDigit('7')">7</button>
+                                <button class="numpad-btn" onclick="addDigit('8')">8</button>
+                                <button class="numpad-btn" onclick="addDigit('9')">9</button>
+                                <button class="numpad-btn" onclick="addDigit('4')">4</button>
+                                <button class="numpad-btn" onclick="addDigit('5')">5</button>
+                                <button class="numpad-btn" onclick="addDigit('6')">6</button>
+                                <button class="numpad-btn" onclick="addDigit('1')">1</button>
+                                <button class="numpad-btn" onclick="addDigit('2')">2</button>
+                                <button class="numpad-btn" onclick="addDigit('3')">3</button>
+                                <button class="numpad-btn special" onclick="clearInput()">⌫</button>
+                                <button class="numpad-btn" onclick="addDigit('0')">0</button>
+                                <button class="numpad-btn special" onclick="clearAll()">C</button>
                             </div>
-                        </div>
-
-                        <div class="number-input-display active" id="activeDisplay">
-                            <div class="number-input-label" id="activeLabel">i.O. Teileanzahl eingeben</div>
-                            <div class="number-input-value" id="activeValue">0</div>
-                        </div>
-
-                        <div class="numpad">
-                            <button class="numpad-btn" onclick="addDigit('7')">7</button>
-                            <button class="numpad-btn" onclick="addDigit('8')">8</button>
-                            <button class="numpad-btn" onclick="addDigit('9')">9</button>
-                            <button class="numpad-btn" onclick="addDigit('4')">4</button>
-                            <button class="numpad-btn" onclick="addDigit('5')">5</button>
-                            <button class="numpad-btn" onclick="addDigit('6')">6</button>
-                            <button class="numpad-btn" onclick="addDigit('1')">1</button>
-                            <button class="numpad-btn" onclick="addDigit('2')">2</button>
-                            <button class="numpad-btn" onclick="addDigit('3')">3</button>
-                            <button class="numpad-btn special" onclick="clearInput()">⌫</button>
-                            <button class="numpad-btn" onclick="addDigit('0')">0</button>
-                            <button class="numpad-btn special" onclick="clearAll()">C</button>
-                        </div>
-
-                        <div class="modal-buttons">
-                            <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
-                            <button class="btn-primary" onclick="savePrüfung()">Bestätigen</button>
                         </div>
                     </div>
                 </div>
@@ -915,8 +952,11 @@
 
             modal.innerHTML = `
                 <div class="modal-content">
-                    <h2>⚠️ Störung melden</h2>
-                    <div class="störung-options">
+                    <div class="modal-header">
+                        <h2>⚠️ Störung melden</h2>
+                    </div>
+                    <div class="modal-body">
+                        <div class="störung-options">
                         <div class="störung-option" onclick="selectStörung(this, 'Technischer Defekt')">
                             <h3>🔧 Technischer Defekt</h3>
                         </div>
@@ -926,15 +966,16 @@
                         <div class="störung-option" onclick="selectStörung(this, 'Qualitätsproblem')">
                             <h3>⚠️ Qualitätsproblem</h3>
                         </div>
-                    </div>
-                    <div class="input-group">
-                        <label>Dauer in Minuten:</label>
-                        <input type="range" class="timeline-slider" id="störungDuration" min="1" max="120" value="30" oninput="updateDuration()">
-                        <div class="timeline-value" id="durationDisplay">30 min</div>
-                    </div>
-                    <div class="modal-buttons">
-                        <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
-                        <button class="btn-primary" onclick="saveStörung()">Bestätigen</button>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 10px;">Dauer in Minuten:</label>
+                            <input type="range" class="timeline-slider" id="störungDuration" min="1" max="120" value="30" oninput="updateDuration()">
+                            <div class="timeline-value" id="durationDisplay">30 min</div>
+                        </div>
+                        <div class="modal-buttons">
+                            <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+                            <button class="btn-primary" onclick="saveStörung()">Bestätigen</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -1066,7 +1107,7 @@
         }
 
         function closeModal() {
-            const modal = document.getElementById('prüfungModal') || document.getElementById('störungModal');
+            const modal = document.getElementById('prüfungModal') || document.getElementById('störungModal') || document.getElementById('databaseModal');
             if (modal) modal.remove();
         }
 
