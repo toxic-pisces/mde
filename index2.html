@@ -1,0 +1,2381 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Maschinen Prüfsystem</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#2a5298">
+    
+    <!-- Barcode Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+    <!-- MDE Extended CSS -->
+    <link rel="stylesheet" href="./css/mde-extended.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Login Screen */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            position: relative;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.5;
+        }
+
+        .login-box {
+            background: white;
+            padding: 50px 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            text-align: center;
+            width: 450px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-box h1 {
+            color: #1a202c;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        .login-box input:focus {
+            outline: none;
+            border-color: #2a5298;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        .login-display {
+            width: 100%;
+            padding: 24px;
+            font-size: 36px;
+            font-weight: 700;
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+            border: 3px solid #e2e8f0;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a202c;
+            transition: all 0.2s;
+        }
+
+        .login-display.empty {
+            color: #94a3b8;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .login-numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .login-numpad-btn {
+            height: 60px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a202c;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-numpad-btn:hover {
+            background: #f8fafc;
+            border-color: #2a5298;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(42, 82, 152, 0.15);
+        }
+
+        .login-numpad-btn:active {
+            transform: translateY(0);
+            background: #2a5298;
+            color: white;
+        }
+
+        .login-numpad-btn.special {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            font-size: 18px;
+        }
+
+        .login-numpad-btn.special:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(42, 82, 152, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(42, 82, 152, 0.4);
+        }
+
+        /* Main Container */
+        .main-container {
+            display: flex;
+            height: 100vh;
+            background: #ecf0f1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 100px;
+            background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 10px;
+            box-shadow: 2px 0 24px rgba(0,0,0,0.08);
+        }
+
+        .user-profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 16px rgba(42, 82, 152, 0.4);
+        }
+
+        .user-name {
+            color: white;
+            font-size: 11px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .sidebar-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            margin: 6px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            font-size: 24px;
+            color: rgba(255,255,255,0.85);
+        }
+
+        .sidebar-btn:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+        }
+
+        .sidebar-btn.database-btn {
+            margin-top: auto;
+            background: rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .sidebar-btn.database-btn:hover {
+            background: rgba(16, 185, 129, 0.3);
+        }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            padding: 40px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: #f8fafc;
+        }
+
+        .content::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 800px;
+            height: 800px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        .content.machine-active::before {
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, rgba(16, 185, 129, 0.15) 40%, transparent 70%);
+            animation: glowPulse 4s ease-in-out infinite;
+            opacity: 1;
+        }
+
+        .content.machine-inactive::before {
+            background: radial-gradient(circle, rgba(239, 68, 68, 0.35) 0%, rgba(239, 68, 68, 0.15) 40%, transparent 70%);
+            animation: glowPulse 4s ease-in-out infinite;
+            opacity: 1;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(0.85);
+                opacity: 0.6;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.15);
+                opacity: 1;
+            }
+        }
+
+        /* Main Layout without Card */
+        .machine-screen {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 40px;
+            height: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .machine-image-section {
+            grid-row: 1 / 4;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .machine-image {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
+        }
+
+        .machine-image img {
+            width: 90%;
+            height: 90%;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+
+        .machine-header-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .machine-name {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #1a202c;
+            letter-spacing: -1px;
+            margin: 0;
+        }
+
+        .status-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 32px;
+            border-radius: 16px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: none;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+            width: fit-content;
+        }
+
+        .status-toggle.inactive {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+        }
+
+        .status-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .status-toggle.inactive:hover {
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .status-indicator {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: white;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .part-section {
+            background: white;
+            padding: 28px 32px;
+            border-radius: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .part-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .part-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .part-info-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .part-info-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1a202c;
+            text-align: right;
+        }
+
+        .part-info-value.highlight {
+            color: #2a5298;
+            font-size: 1.3rem;
+        }
+
+        .no-active-inspection {
+            text-align: center;
+            padding: 20px;
+            color: #94a3b8;
+            font-size: 0.95rem;
+            font-style: italic;
+        }
+
+        .action-buttons-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+        }
+
+        .action-btn {
+            padding: 40px 32px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: white;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .btn-complete {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .btn-complete:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-störung {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .btn-störung:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(245, 158, 11, 0.3);
+        }
+
+        /* Barcode Scanner Modal */
+        .scanner-modal {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .scanner-header {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            padding: 28px 35px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .scanner-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin: 0;
+        }
+
+        .scanner-close-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .scanner-close-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        .scanner-body {
+            padding: 35px;
+        }
+
+        #reader {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 3px solid #e2e8f0;
+            background: #000;
+        }
+
+        #reader video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .scanner-status {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            text-align: center;
+        }
+
+        .scanner-status.success {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #047857;
+        }
+
+        .scanner-status.error {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .scanner-status-text {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .scanner-result {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 20px;
+            font-weight: 700;
+            color: #2a5298;
+            letter-spacing: 2px;
+        }
+
+        .scanner-fallback {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .scanner-fallback-text {
+            color: #64748b;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .scanner-fallback input {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            text-align: center;
+            letter-spacing: 1px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .scanner-fallback input:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s ease-out;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-header {
+            padding: 30px 40px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .modal-header h2 {
+            color: #1a202c;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .modal-body {
+            padding: 40px;
+        }
+
+        /* Responsive Numpad Layout */
+        @media (min-width: 900px) and (orientation: landscape) {
+            .modal-content {
+                max-width: 1000px;
+            }
+
+            .numpad-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 40px;
+                align-items: start;
+            }
+
+            .numpad-left {
+                display: flex;
+                flex-direction: column;
+                gap: 30px;
+            }
+
+            .numpad {
+                margin-bottom: 0;
+            }
+        }
+
+        /* Number Input Display */
+        .number-input-display {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 3px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .number-input-display.active {
+            border-color: #2a5298;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            box-shadow: 0 0 0 4px rgba(42, 82, 152, 0.1);
+        }
+
+        .number-input-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+        }
+
+        .number-input-value {
+            font-size: 72px;
+            font-weight: 700;
+            color: #1a202c;
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+            letter-spacing: -2px;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .number-input-value.empty {
+            color: #cbd5e1;
+        }
+
+        /* Numpad */
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .numpad-btn {
+            aspect-ratio: 1;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 32px;
+            font-weight: 600;
+            color: #1a202c;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .numpad-btn:hover {
+            background: #f8fafc;
+            border-color: #2a5298;
+            transform: scale(1.05);
+        }
+
+        .numpad-btn:active {
+            transform: scale(0.95);
+            background: #2a5298;
+            color: white;
+        }
+
+        .numpad-btn.special {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            font-size: 28px;
+        }
+
+        .numpad-btn.special:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+        }
+
+        .numpad-btn.wide {
+            grid-column: span 2;
+        }
+
+        /* Input Tabs */
+        .input-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .input-tab {
+            padding: 20px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .input-tab:hover {
+            background: white;
+            border-color: #cbd5e1;
+        }
+
+        .input-tab.active {
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(42, 82, 152, 0.3);
+        }
+
+        .input-tab-label {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .input-tab-value {
+            font-size: 36px;
+            font-weight: 700;
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+        }
+
+        /* Database Modal */
+        .database-modal-content {
+            max-width: 1200px;
+        }
+
+        .database-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 40px;
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .database-header h2 {
+            color: white;
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .database-close-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .database-close-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .database-body {
+            padding: 40px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table thead {
+            background: #f8fafc;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #64748b;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .data-table td {
+            padding: 16px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 15px;
+            color: #1a202c;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .data-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .data-badge.io {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .data-badge.nio {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .data-badge.störung {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn-secondary {
+            flex: 1;
+            padding: 14px 20px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            color: #1a202c;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+        }
+
+        .btn-secondary:hover {
+            border-color: #2a5298;
+            background: #f8fafc;
+            color: #2a5298;
+        }
+
+        /* Störung Options */
+        .störung-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        .störung-option {
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        .störung-option:hover {
+            border-color: #f59e0b;
+            background: white;
+        }
+
+        .störung-option.selected {
+            border-color: #f59e0b;
+            background: #fffbeb;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        }
+
+        .störung-option h3 {
+            font-size: 16px;
+            color: #1a202c;
+            font-weight: 600;
+            position: relative;
+        }
+        
+        .störung-option {
+            position: relative;
+        }
+
+        .timeline-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #e2e8f0;
+            outline: none;
+            -webkit-appearance: none;
+            margin: 20px 0;
+        }
+
+        .timeline-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #f59e0b;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+        }
+
+        .timeline-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #f59e0b;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+        }
+
+        .timeline-value {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: #f59e0b;
+            margin-top: 15px;
+        }
+
+        /* Simulation Button */
+        .simulation-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(239, 68, 68, 0.15);
+            backdrop-filter: blur(8px);
+            border: 2px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 28px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 1500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+        }
+
+        .simulation-btn:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .simulation-btn.active {
+            background: rgba(239, 68, 68, 0.9);
+            border-color: #ef4444;
+            color: white;
+            animation: pulseAlert 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseAlert {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        }
+
+        /* Stillstand Overlay */
+        .stillstand-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .stillstand-content {
+            text-align: center;
+            color: white;
+        }
+
+        .stillstand-icon {
+            font-size: 120px;
+            margin-bottom: 30px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .stillstand-title {
+            font-size: 80px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .stillstand-subtitle {
+            font-size: 32px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .stillstand-info {
+            margin-top: 40px;
+            padding: 20px 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stillstand-info p {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 8px 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes popIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-box">
+            <h1>Maschinen Prüfsystem</h1>
+            <div class="login-display empty" id="loginDisplay">Prüfnummer eingeben</div>
+            <div class="login-numpad">
+                <button class="login-numpad-btn" onclick="addLoginDigit('1')">1</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('2')">2</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('3')">3</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('4')">4</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('5')">5</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('6')">6</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('7')">7</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('8')">8</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('9')">9</button>
+                <button class="login-numpad-btn special" onclick="clearLoginInput()">⌫</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('0')">0</button>
+                <button class="login-numpad-btn special" onclick="clearAllLogin()">C</button>
+            </div>
+            <button class="btn-primary" onclick="login()">Anmelden</button>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="main-container hidden">
+        <!-- Stillstand Overlay -->
+        <div id="stillstandOverlay" class="stillstand-overlay hidden">
+            <div class="stillstand-content">
+                <div class="stillstand-icon">⚠️</div>
+                <div class="stillstand-title">STILLSTAND</div>
+                <div class="stillstand-subtitle">Maschine außer Betrieb</div>
+                <div class="stillstand-info">
+                    <p id="stillstandTyp">Grund: -</p>
+                    <p id="stillstandDauer">Dauer: 00:00:00</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Störung Overlay -->
+        <div id="störungOverlay" class="störung-overlay hidden">
+            <div class="störung-content">
+                <div class="störung-icon">🚨</div>
+                <div class="störung-title">STÖRUNG</div>
+                <div class="störung-subtitle">Bitte Störungsgrund angeben</div>
+                <div class="stillstand-info">
+                    <p id="störungTypInfo">Grund: -</p>
+                    <p id="störungDauerInfo">Dauer: 00:00:00</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="user-profile">
+                <div class="user-avatar">👤</div>
+                <div class="user-name" id="userName">Prüfer</div>
+            </div>
+
+            <!-- Version Toggle -->
+            <div class="version-toggle">
+                <button class="version-toggle-btn active" id="versionBtn1" onclick="switchVersion(1)">
+                    <div class="version-icon">⚡</div>
+                    <div>AUTO</div>
+                </button>
+                <button class="version-toggle-btn" id="versionBtn2" onclick="switchVersion(2)">
+                    <div class="version-icon">✋</div>
+                    <div>MANUELL</div>
+                </button>
+            </div>
+
+            <button class="sidebar-btn database-btn" onclick="openDatabase()" title="Datenbank">🗄️</button>
+            <button class="sidebar-btn" onclick="openStörungDatabase()" title="Störungen" style="background: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.3);">⚠️</button>
+            <button class="sidebar-btn" onclick="logout()" title="Abmelden">🚪</button>
+        </div>
+
+        <div class="content">
+            <div class="machine-screen">
+                <div class="machine-image-section">
+                    <div class="machine-image">
+                        <img src="./images/machine.png" alt="Maschine" onerror="this.style.display='none'; this.parentElement.innerHTML='⚙️';">
+                    </div>
+                    <div class="part-section" id="partSection">
+                        <div class="no-active-inspection">
+                            Keine aktive Prüfung
+                        </div>
+                    </div>
+                    <div class="timeline-container">
+                        <div class="timeline-header">
+                            📊 Zeitstrahl
+                        </div>
+                        <div id="timelineContent" class="timeline-empty">
+                            Noch keine Einträge vorhanden
+                        </div>
+                    </div>
+                </div>
+
+                <div class="machine-header-section">
+                    <div class="machine-name">Maschine 01</div>
+                    <button class="status-toggle active" id="statusToggle" onclick="toggleStatus()">
+                        <span class="status-indicator"></span>
+                        <span id="statusText">In Betrieb</span>
+                    </button>
+                </div>
+
+                <!-- Automatischer Modus -->
+                <div class="action-buttons-section" id="autoModeSection">
+                    <button class="action-btn" id="simulationActionBtn" onclick="handleSimulationAction()" style="grid-column: 1 / -1; background: linear-gradient(135deg, #10b981, #059669);">
+                        <span style="font-size: 2.5rem;" id="simActionIcon">▶</span>
+                        <span id="simActionText">Prüfung starten (Zyklus 1)</span>
+                    </button>
+                </div>
+
+                <!-- Manueller Modus -->
+                <div class="manual-mode-buttons hidden" id="manualModeSection">
+                    <button class="manual-btn start" id="manualStartBtn" onclick="handleManualStart()">
+                        <span style="font-size: 2rem;">▶</span>
+                        <span>Prüfung starten</span>
+                    </button>
+                    <button class="manual-btn complete" id="manualCompleteBtn" onclick="handleManualComplete()" disabled>
+                        <span style="font-size: 2rem;">✓</span>
+                        <span>Prüfung abgeschlossen</span>
+                    </button>
+                    <button class="manual-btn interrupt" id="manualInterruptBtn" onclick="handleManualInterrupt()">
+                        <span style="font-size: 2rem;">⚠️</span>
+                        <span>Unterbrechung melden</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let state = {
+            prüfnummer: '',
+            currentPart: 'Housing',
+            machineActive: true,
+            prüfungen: [],
+            störungen: [],
+            prüfungAktiv: false,
+            currentTeilekarte: null,
+            prüfungStartzeit: null,
+            stillstandSimulation: false,
+            currentStillstand: null
+        };
+
+        const availableParts = [
+            'Housing',
+            'Bremskolben',
+            'Ventil'
+        ];
+
+        let loginValue = '';
+
+        function addLoginDigit(digit) {
+            if (loginValue.length < 10) {
+                loginValue += digit;
+                updateLoginDisplay();
+            }
+        }
+
+        function clearLoginInput() {
+            loginValue = loginValue.slice(0, -1);
+            updateLoginDisplay();
+        }
+
+        function clearAllLogin() {
+            loginValue = '';
+            updateLoginDisplay();
+        }
+
+        function updateLoginDisplay() {
+            const display = document.getElementById('loginDisplay');
+            if (loginValue === '') {
+                display.textContent = 'Prüfnummer eingeben';
+                display.classList.add('empty');
+            } else {
+                display.textContent = loginValue;
+                display.classList.remove('empty');
+            }
+        }
+
+        function login() {
+            if (loginValue.trim()) {
+                state.prüfnummer = loginValue.trim();
+                document.getElementById('userName').textContent = 'P-' + state.prüfnummer;
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                updateContentGlow();
+                loginValue = '';
+                updateLoginDisplay();
+            }
+        }
+
+        function updateContentGlow() {
+            const content = document.querySelector('.content');
+            content.classList.remove('machine-active', 'machine-inactive');
+            if (state.machineActive) {
+                content.classList.add('machine-active');
+            } else {
+                content.classList.add('machine-inactive');
+            }
+        }
+
+        function logout() {
+            if (confirm('Möchten Sie sich wirklich abmelden?')) {
+                state.prüfnummer = '';
+                state.prüfungAktiv = false;
+                state.currentTeilekarte = null;
+                loginValue = '';
+                updateLoginDisplay();
+                updateMainButton();
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+            }
+        }
+
+        function updateMainButton() {
+            const btn = document.getElementById('mainActionBtn');
+            const icon = btn.querySelector('span:first-child');
+            const text = document.getElementById('mainActionText');
+            const partBtn = document.querySelector('.change-part-btn');
+            
+            if (state.prüfungAktiv) {
+                icon.textContent = '✓';
+                text.textContent = 'Prüfung abschließen';
+                btn.classList.add('btn-complete');
+                btn.classList.remove('btn-start');
+                if (partBtn) partBtn.disabled = true;
+            } else {
+                icon.textContent = '▶';
+                text.textContent = 'Prüfung starten';
+                btn.classList.remove('btn-complete');
+                btn.classList.add('btn-start');
+                if (partBtn) partBtn.disabled = false;
+            }
+        }
+
+        function handleMainAction() {
+            if (state.prüfungAktiv) {
+                // Prüfung abschließen
+                openPrüfungModal();
+            } else {
+                // Prüfung starten - Barcode scannen
+                openBarcodeScanner();
+            }
+        }
+
+        // Barcode Scanner
+        let html5QrcodeScanner = null;
+        let scanInProgress = false;
+
+        function openBarcodeScanner() {
+            scanInProgress = false;
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'barcodeModal';
+            modal.onclick = (e) => {
+                if (e.target === modal) closeBarcodeScanner();
+            };
+
+            modal.innerHTML = `
+                <div class="scanner-modal">
+                    <div class="scanner-header">
+                        <h2>📷 Barcode Scanner</h2>
+                        <button class="scanner-close-btn" onclick="closeBarcodeScanner()">×</button>
+                    </div>
+                    <div class="scanner-body">
+                        <div id="reader"></div>
+                        <div class="scanner-status" id="scannerStatus">
+                            <p class="scanner-status-text">Richte die Kamera auf einen Barcode...</p>
+                        </div>
+                        <div class="scanner-fallback">
+                            <p class="scanner-fallback-text">oder gib den Code manuell ein:</p>
+                            <input
+                                type="text"
+                                id="manualBarcodeInput"
+                                placeholder="Barcode eingeben"
+                                onkeypress="if(event.key === 'Enter') submitManualBarcode()"
+                            />
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            startBarcodeScanner();
+        }
+
+        function startBarcodeScanner() {
+            const config = {
+                fps: 20,
+                qrbox: { width: 400, height: 150 },
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.QR_CODE,
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E
+                ],
+                rememberLastUsedCamera: true,
+                aspectRatio: 1.777778
+            };
+
+            html5QrcodeScanner = new Html5Qrcode("reader");
+
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                config,
+                onScanSuccess,
+                onScanError
+            ).catch(err => {
+                console.error("Camera start error:", err);
+                const status = document.getElementById('scannerStatus');
+                if (status) {
+                    status.className = 'scanner-status error';
+                    status.innerHTML = `
+                        <p class="scanner-status-text">⚠️ Kamera-Zugriff verweigert oder nicht verfügbar</p>
+                        <p style="font-size: 13px; margin-top: 10px; font-weight: normal;">Bitte verwende die manuelle Eingabe unten.</p>
+                    `;
+                }
+                setTimeout(() => {
+                    const input = document.getElementById('manualBarcodeInput');
+                    if (input) input.focus();
+                }, 300);
+            });
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if (scanInProgress) return;
+            scanInProgress = true;
+
+            if ('vibrate' in navigator) {
+                navigator.vibrate(200);
+            }
+
+            const status = document.getElementById('scannerStatus');
+            if (status) {
+                status.className = 'scanner-status success';
+                status.innerHTML = `
+                    <p class="scanner-status-text">✓ Erfolgreich gescannt!</p>
+                    <div class="scanner-result">${decodedText}</div>
+                `;
+            }
+
+            setTimeout(() => {
+                processBarcodeResult(decodedText);
+            }, 500);
+        }
+
+        function onScanError(errorMessage) {
+            // Silently ignore scan errors
+        }
+
+        function submitManualBarcode() {
+            const input = document.getElementById('manualBarcodeInput');
+            const barcode = input.value.trim();
+
+            if (barcode.length > 0) {
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(200);
+                }
+
+                const status = document.getElementById('scannerStatus');
+                if (status) {
+                    status.className = 'scanner-status success';
+                    status.innerHTML = `
+                        <p class="scanner-status-text">✓ Manuell eingegeben!</p>
+                        <div class="scanner-result">${barcode}</div>
+                    `;
+                }
+
+                setTimeout(() => {
+                    processBarcodeResult(barcode);
+                }, 1000);
+            }
+        }
+
+        function processBarcodeResult(barcode) {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    html5QrcodeScanner.clear();
+                    html5QrcodeScanner = null;
+                }).catch(err => {
+                    console.error("Error stopping scanner:", err);
+                    html5QrcodeScanner = null;
+                });
+            }
+
+            const modal = document.getElementById('barcodeModal');
+            if (modal) modal.remove();
+
+            // Generate random data for demo
+            const teilekartenNr = barcode;
+            const chargeNr = 'CH-' + Math.floor(Math.random() * 900 + 100);
+            const laufkartenNr = 'LK-' + Math.floor(Math.random() * 9000 + 1000);
+            const teil = availableParts[Math.floor(Math.random() * availableParts.length)];
+
+            showTeilekartenInfo(teilekartenNr, chargeNr, laufkartenNr, teil);
+        }
+
+        function closeBarcodeScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    html5QrcodeScanner.clear();
+                    html5QrcodeScanner = null;
+                }).catch(err => {
+                    console.error("Error stopping scanner:", err);
+                    html5QrcodeScanner = null;
+                });
+            }
+
+            const modal = document.getElementById('barcodeModal');
+            if (modal) modal.remove();
+
+            scanInProgress = false;
+        }
+
+        function showTeilekartenInfo(teilekartenNr, chargeNr, laufkartenNr, teil) {
+            closeModal();
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'teilekartenModal';
+            modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>✓ Teilekarte erfasst</h2>
+                    </div>
+                    <div class="modal-body">
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <div style="padding: 24px; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 3px solid #2a5298; border-radius: 16px;">
+                                <div style="display: grid; gap: 16px;">
+                                    <div>
+                                        <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 8px;">Teil</div>
+                                        <div style="font-size: 24px; font-weight: 700; color: #1a202c;">📦 ${teil}</div>
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                        <div>
+                                            <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 8px;">Teilekarten-Nr.</div>
+                                            <div style="font-size: 18px; font-weight: 700; color: #2a5298;">${teilekartenNr}</div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 8px;">Charge-Nr.</div>
+                                            <div style="font-size: 18px; font-weight: 700; color: #2a5298;">${chargeNr}</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 8px;">Laufkarten-Nr.</div>
+                                        <div style="font-size: 18px; font-weight: 700; color: #2a5298;">${laufkartenNr}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p style="text-align: center; color: #64748b; font-size: 16px;">Bitte überprüfen Sie die Daten und bestätigen Sie.</p>
+                        </div>
+                        <div class="modal-buttons">
+                            <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+                            <button class="btn-primary" onclick="startPrüfung('${teilekartenNr}', '${chargeNr}', '${laufkartenNr}', '${teil}')">Bestätigen & Starten</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function startPrüfung(teilekartenNr, chargeNr, laufkartenNr, teil) {
+            state.prüfungAktiv = true;
+            state.prüfungStartzeit = new Date();
+            state.currentTeilekarte = {
+                teilekartenNr: teilekartenNr,
+                chargeNr: chargeNr,
+                laufkartenNr: laufkartenNr,
+                teil: teil
+            };
+            state.currentPart = teil;
+            
+            // Update UI
+            updatePartSection();
+            updateMainButton();
+            
+            closeModal();
+            showSuccess(`Prüfung gestartet für ${teil}`);
+        }
+
+        function updatePartSection() {
+            const section = document.getElementById('partSection');
+            
+            if (!state.prüfungAktiv || !state.currentTeilekarte) {
+                section.innerHTML = `
+                    <div class="no-active-inspection">
+                        Keine aktive Prüfung
+                    </div>
+                `;
+                return;
+            }
+
+            const tk = state.currentTeilekarte;
+            section.innerHTML = `
+                <div class="part-info-row">
+                    <span class="part-info-label">Teil</span>
+                    <span class="part-info-value highlight">${tk.teil}</span>
+                </div>
+                <div class="part-info-row">
+                    <span class="part-info-label">TBK-Nr.</span>
+                    <span class="part-info-value">${tk.teilekartenNr}</span>
+                </div>
+                <div class="part-info-row">
+                    <span class="part-info-label">Charge</span>
+                    <span class="part-info-value">${tk.chargeNr}</span>
+                </div>
+                <div class="part-info-row">
+                    <span class="part-info-label">Laufkarte</span>
+                    <span class="part-info-value">${tk.laufkartenNr}</span>
+                </div>
+            `;
+        }
+
+        let currentInputField = 'io';
+        let inputValues = { io: '', nio: '' };
+        let hasConfirmedIO = false;
+        let selectedFehler = [];
+        let showFehlerSelection = false;
+
+        function openPrüfungModal() {
+            currentInputField = 'io';
+            inputValues = { io: '', nio: '' };
+            hasConfirmedIO = false;
+            selectedFehler = [];
+            showFehlerSelection = false;
+
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'prüfungModal';
+            modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>✓ Prüfung abgeschlossen</h2>
+                    </div>
+                    <div class="modal-body">
+                        <div class="numpad-container">
+                            <div class="numpad-left">
+                                <div class="input-tabs">
+                                    <div class="input-tab active" id="tab-io" onclick="switchInputField('io')">
+                                        <div class="input-tab-label">i.O. Teile</div>
+                                        <div class="input-tab-value" id="display-io">0</div>
+                                    </div>
+                                    <div class="input-tab" id="tab-nio" onclick="switchInputField('nio')">
+                                        <div class="input-tab-label">n.i.O. Teile</div>
+                                        <div class="input-tab-value" id="display-nio">0</div>
+                                    </div>
+                                </div>
+
+                                <div class="number-input-display active" id="activeDisplay">
+                                    <div class="number-input-label" id="activeLabel">i.O. Teileanzahl eingeben</div>
+                                    <div class="number-input-value" id="activeValue">0</div>
+                                </div>
+
+                                <div class="modal-buttons">
+                                    <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+                                    <button class="btn-primary" id="confirmBtn" onclick="handleConfirm()">Weiter zu n.i.O.</button>
+                                </div>
+                            </div>
+
+                            <div class="numpad">
+                                <button class="numpad-btn" onclick="addDigit('1')">1</button>
+                                <button class="numpad-btn" onclick="addDigit('2')">2</button>
+                                <button class="numpad-btn" onclick="addDigit('3')">3</button>
+                                <button class="numpad-btn" onclick="addDigit('4')">4</button>
+                                <button class="numpad-btn" onclick="addDigit('5')">5</button>
+                                <button class="numpad-btn" onclick="addDigit('6')">6</button>
+                                <button class="numpad-btn" onclick="addDigit('7')">7</button>
+                                <button class="numpad-btn" onclick="addDigit('8')">8</button>
+                                <button class="numpad-btn" onclick="addDigit('9')">9</button>
+                                <button class="numpad-btn special" onclick="clearInput()">⌫</button>
+                                <button class="numpad-btn" onclick="addDigit('0')">0</button>
+                                <button class="numpad-btn special" onclick="clearAll()">C</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            updateDisplay();
+        }
+
+        function switchInputField(field) {
+            currentInputField = field;
+            document.getElementById('tab-io').classList.toggle('active', field === 'io');
+            document.getElementById('tab-nio').classList.toggle('active', field === 'nio');
+            
+            const label = field === 'io' ? 'i.O. Teileanzahl eingeben' : 'n.i.O. Teileanzahl eingeben';
+            document.getElementById('activeLabel').textContent = label;
+            
+            // Update button text based on current field
+            const confirmBtn = document.getElementById('confirmBtn');
+            if (field === 'io' && !hasConfirmedIO) {
+                confirmBtn.textContent = 'Weiter zu n.i.O.';
+            } else {
+                confirmBtn.textContent = 'Bestätigen';
+            }
+            
+            updateDisplay();
+        }
+
+        function handleConfirm() {
+            // If we're on i.O. field and haven't confirmed yet, switch to n.i.O.
+            if (currentInputField === 'io' && !hasConfirmedIO) {
+                hasConfirmedIO = true;
+                switchInputField('nio');
+            } else {
+                // Check if we need to show Fehlermerkmale selection
+                const nioCount = parseInt(inputValues.nio) || 0;
+                if (nioCount > 0 && !showFehlerSelection) {
+                    showFehlerSelection = true;
+                    renderFehlermerkmaleSelection();
+                } else {
+                    // Otherwise, save the Prüfung
+                    savePrüfung();
+                }
+            }
+        }
+
+        function renderFehlermerkmaleSelection() {
+            const modal = document.getElementById('prüfungModal');
+            if (!modal) return;
+
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>⚠️ Fehlermerkmale auswählen</h2>
+                    </div>
+                    <div class="modal-body">
+                        <p style="text-align: center; color: #64748b; margin-bottom: 30px; font-size: 16px;">
+                            Wählen Sie die Fehlermerkmale in der Reihenfolge ihrer Häufigkeit aus:
+                        </p>
+                        
+                        <div class="störung-options" style="margin-bottom: 30px;">
+                            <div class="störung-option" id="fehler-rundheit" onclick="selectFehler(this, 'Rundheit')">
+                                <h3>🔵 Rundheit</h3>
+                                <span class="fehler-nummer" style="display: none;"></span>
+                            </div>
+                            <div class="störung-option" id="fehler-durchmesser" onclick="selectFehler(this, 'Durchmesser')">
+                                <h3>⭕ Durchmesser</h3>
+                                <span class="fehler-nummer" style="display: none;"></span>
+                            </div>
+                            <div class="störung-option" id="fehler-laenge" onclick="selectFehler(this, 'Länge')">
+                                <h3>📏 Länge</h3>
+                                <span class="fehler-nummer" style="display: none;"></span>
+                            </div>
+                            <div class="störung-option" id="fehler-winkel" onclick="selectFehler(this, 'Winkel')">
+                                <h3>📐 Winkel</h3>
+                                <span class="fehler-nummer" style="display: none;"></span>
+                            </div>
+                        </div>
+
+                        <div class="modal-buttons">
+                            <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+                            <button class="btn-primary" onclick="savePrüfung()">Bestätigen</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectFehler(element, fehlerTyp) {
+            const fehlerNummerSpan = element.querySelector('.fehler-nummer');
+            
+            // Check if already selected
+            const existingIndex = selectedFehler.findIndex(f => f.type === fehlerTyp);
+            
+            if (existingIndex !== -1) {
+                // Deselect
+                selectedFehler.splice(existingIndex, 1);
+                element.classList.remove('selected');
+                fehlerNummerSpan.style.display = 'none';
+                
+                // Renumber remaining
+                updateFehlerNumbers();
+            } else {
+                // Select
+                const nummer = selectedFehler.length + 1;
+                selectedFehler.push({ type: fehlerTyp, nummer: nummer });
+                element.classList.add('selected');
+                fehlerNummerSpan.textContent = nummer;
+                fehlerNummerSpan.style.display = 'inline-block';
+                fehlerNummerSpan.style.cssText = `
+                    display: inline-block;
+                    background: #2a5298;
+                    color: white;
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 700;
+                    font-size: 14px;
+                    margin-left: 10px;
+                    position: absolute;
+                    right: 16px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                `;
+            }
+        }
+
+        function updateFehlerNumbers() {
+            // Update all selected fehler with new numbers
+            selectedFehler.forEach((fehler, index) => {
+                fehler.nummer = index + 1;
+                const element = document.getElementById(`fehler-${fehler.type.toLowerCase()}`);
+                if (element) {
+                    const nummerSpan = element.querySelector('.fehler-nummer');
+                    if (nummerSpan) {
+                        nummerSpan.textContent = fehler.nummer;
+                    }
+                }
+            });
+        }
+
+        function addDigit(digit) {
+            if (inputValues[currentInputField].length < 4) {
+                inputValues[currentInputField] += digit;
+                updateDisplay();
+            }
+        }
+
+        function clearInput() {
+            inputValues[currentInputField] = inputValues[currentInputField].slice(0, -1);
+            updateDisplay();
+        }
+
+        function clearAll() {
+            inputValues[currentInputField] = '';
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const value = inputValues[currentInputField] || '0';
+            document.getElementById('activeValue').textContent = value;
+            document.getElementById('display-io').textContent = inputValues.io || '0';
+            document.getElementById('display-nio').textContent = inputValues.nio || '0';
+        }
+
+        function savePrüfung() {
+            const ioCount = parseInt(inputValues.io) || 0;
+            const nioCount = parseInt(inputValues.nio) || 0;
+            
+            const now = new Date();
+            const startzeit = state.prüfungStartzeit ? state.prüfungStartzeit.toLocaleString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            }) : '-';
+            
+            const endzeit = now.toLocaleString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+
+            const prüfung = {
+                id: Date.now(),
+                startzeit: startzeit,
+                endzeit: endzeit,
+                prüfnummer: state.prüfnummer,
+                part: state.currentPart,
+                teilekarte: state.currentTeilekarte,
+                io: ioCount,
+                nio: nioCount,
+                total: ioCount + nioCount,
+                fehlermerkmale: selectedFehler.length > 0 ? selectedFehler : null,
+                type: 'prüfung'
+            };
+            state.prüfungen.push(prüfung);
+            console.log('Prüfung gespeichert:', prüfung);
+            
+            // Reset Prüfung
+            state.prüfungAktiv = false;
+            state.currentTeilekarte = null;
+            state.prüfungStartzeit = null;
+            updateMainButton();
+            updatePartSection();
+            
+            closeModal();
+            showSuccess(`Prüfung gespeichert: ${ioCount} i.O. / ${nioCount} n.i.O.`);
+        }
+
+        function openStörungModal() {
+            const isSimulation = state.stillstandSimulation;
+            const modalTitle = isSimulation ? 'Stillstand melden' : 'Störung melden';
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'störungModal';
+            modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+            // Kein Schieberegler mehr bei Simulation
+            const durationSection = (!isSimulation) ? `
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 10px;">Dauer in Minuten:</label>
+                    <input type="range" class="timeline-slider" id="störungDuration" min="1" max="120" value="30" oninput="updateDuration()">
+                    <div class="timeline-value" id="durationDisplay">30 min</div>
+                </div>
+            ` : '';
+
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>⚠️ ${modalTitle}</h2>
+                    </div>
+                    <div class="modal-body">
+                        <div class="störung-options">
+                            <div class="störung-option" onclick="selectStörung(this, 'Kalibrierung fehlgeschlagen')">
+                                <h3>🔧 Kalibrierung fehlgeschlagen</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'NIO voll')">
+                                <h3>📦 NIO voll</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Teile Zuführung')">
+                                <h3>⬇️ Teile Zuführung</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Reperatur')">
+                                <h3>🔨 Reperatur</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Rabbit Prüfung')">
+                                <h3>🐰 Rabbit Prüfung</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Keine Rohlinge')">
+                                <h3>❌ Keine Rohlinge</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Teile Abführung')">
+                                <h3>⬆️ Teile Abführung</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Dokumentation')">
+                                <h3>📄 Dokumentation</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Monteur Einsatz')">
+                                <h3>👷 Monteur Einsatz</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Ablauffehler')">
+                                <h3>⚠️ Ablauffehler</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Aushilfe andere Anlage')">
+                                <h3>🔄 Aushilfe andere Anlage</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Sonstiges')">
+                                <h3>📝 Sonstiges</h3>
+                            </div>
+                        </div>
+                        
+                        <div id="sonstigesInput" class="hidden" style="margin-bottom: 20px;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 10px;">Bitte beschreiben Sie die Störung:</label>
+                            <input type="text" 
+                                   id="sonstigesText" 
+                                   placeholder="Störungsgrund eingeben"
+                                   style="width: 100%; padding: 16px 20px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 12px; transition: all 0.2s ease;"
+                                   onfocus="this.style.borderColor='#2a5298'; this.style.boxShadow='0 0 0 3px rgba(42, 82, 152, 0.1)';"
+                                   onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                        </div>
+
+                        ${durationSection}
+                        
+                        <div class="modal-buttons">
+                            <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+                            <button class="btn-primary" onclick="saveStörung()">Bestätigen</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        let selectedStörung = null;
+        function selectStörung(el, type) {
+            document.querySelectorAll('.störung-option').forEach(e => e.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedStörung = type;
+            
+            // Show/hide text input for "Sonstiges"
+            const sonstigesInput = document.getElementById('sonstigesInput');
+            if (type === 'Sonstiges') {
+                sonstigesInput.classList.remove('hidden');
+                setTimeout(() => {
+                    document.getElementById('sonstigesText').focus();
+                }, 100);
+            } else {
+                sonstigesInput.classList.add('hidden');
+            }
+        }
+
+        function updateDuration() {
+            const val = document.getElementById('störungDuration').value;
+            document.getElementById('durationDisplay').textContent = val + ' min';
+        }
+
+        function saveStörung() {
+            if (!selectedStörung) {
+                alert('Bitte wählen Sie eine Störung aus!');
+                return;
+            }
+            
+            let störungText = selectedStörung;
+            
+            // If "Sonstiges" is selected, get custom text
+            if (selectedStörung === 'Sonstiges') {
+                const customText = document.getElementById('sonstigesText').value.trim();
+                if (!customText) {
+                    alert('Bitte beschreiben Sie die Störung!');
+                    return;
+                }
+                störungText = 'Sonstiges: ' + customText;
+            }
+            
+            const isSimulation = state.stillstandSimulation;
+            let duration;
+            
+            if (isSimulation) {
+                // For simulation, duration is calculated when ending
+                duration = null;
+            } else {
+                duration = parseInt(document.getElementById('störungDuration').value);
+            }
+            
+            const now = new Date();
+            const timestamp = now.toLocaleString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            const störung = {
+                id: Date.now(),
+                timestamp: timestamp,
+                startTime: isSimulation ? now : null,
+                endTime: null,
+                prüfnummer: state.prüfnummer,
+                type: störungText,
+                duration: duration,
+                isSimulation: isSimulation,
+                störungType: 'störung'
+            };
+            state.störungen.push(störung);
+            console.log('Störung gespeichert:', störung);
+            
+            closeModal();
+            selectedStörung = null;
+            
+            // If simulation mode, activate stillstand overlay
+            if (isSimulation) {
+                state.currentStillstand = störung;
+                showStillstandOverlay();
+            } else {
+                showSuccess(`Störung gemeldet: ${störungText} (${duration} Min)`);
+            }
+        }
+
+        // Simulation Mode Functions
+        function toggleSimulation() {
+            state.stillstandSimulation = !state.stillstandSimulation;
+            const btn = document.getElementById('simulationBtn');
+            const icon = document.getElementById('simIcon');
+            
+            if (state.stillstandSimulation) {
+                btn.classList.add('active');
+                icon.textContent = '⚠️';
+                
+                // Open Störung Modal immediately
+                openStörungModal();
+            } else {
+                btn.classList.remove('active');
+                icon.textContent = '🔧';
+                
+                // Calculate duration and update störung
+                if (state.currentStillstand) {
+                    const endTime = new Date();
+                    const durationMs = endTime - state.currentStillstand.startTime;
+                    const durationMin = Math.round(durationMs / 60000);
+                    
+                    // Update the störung entry
+                    const störung = state.störungen.find(s => s.id === state.currentStillstand.id);
+                    if (störung) {
+                        störung.endTime = endTime;
+                        störung.duration = durationMin;
+                    }
+                    
+                    showSuccess(`Stillstand beendet: ${durationMin} Minuten`);
+                }
+                
+                // Hide stillstand overlay
+                hideStillstandOverlay();
+                state.currentStillstand = null;
+            }
+        }
+
+        function showStillstandOverlay() {
+            const overlay = document.getElementById('stillstandOverlay');
+            overlay.classList.remove('hidden');
+            
+            if (state.currentStillstand) {
+                document.getElementById('störungTyp').textContent = `Grund: ${state.currentStillstand.type}`;
+                // Timer anzeigen
+                updateStillstandTimer();
+                if (!window.stillstandTimerInterval) {
+                    window.stillstandTimerInterval = setInterval(updateStillstandTimer, 1000);
+                }
+            }
+        }
+
+        function updateStillstandTimer() {
+            if (!state.currentStillstand || !state.currentStillstand.startTime) return;
+            const start = new Date(state.currentStillstand.startTime);
+            const now = new Date();
+            let diff = Math.floor((now - start) / 1000);
+            const h = Math.floor(diff / 3600).toString().padStart(2, '0');
+            diff = diff % 3600;
+            const m = Math.floor(diff / 60).toString().padStart(2, '0');
+            const s = (diff % 60).toString().padStart(2, '0');
+            document.getElementById('störungDauer').textContent = `Dauer: ${h}:${m}:${s}`;
+        }
+
+        function hideStillstandOverlay() {
+            const overlay = document.getElementById('stillstandOverlay');
+            overlay.classList.add('hidden');
+            if (window.stillstandTimerInterval) {
+                clearInterval(window.stillstandTimerInterval);
+                window.stillstandTimerInterval = null;
+            }
+        }
+
+        function openDatabase() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'databaseModal';
+            modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+            const prüfungen = state.prüfungen.sort((a, b) => b.id - a.id);
+
+            let tableContent = '';
+            if (prüfungen.length === 0) {
+                tableContent = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📊</div>
+                        <div class="empty-state-text">Noch keine Einträge vorhanden</div>
+                    </div>
+                `;
+            } else {
+                const rows = prüfungen.map(entry => {
+                    const tbkNr = entry.teilekarte ? entry.teilekarte.teilekartenNr : '-';
+                    return `
+                        <tr>
+                            <td>${entry.startzeit || '-'}</td>
+                            <td>${entry.endzeit || '-'}</td>
+                            <td>${entry.prüfnummer}</td>
+                            <td>${tbkNr}</td>
+                            <td>${entry.part}</td>
+                            <td><span class="data-badge io">${entry.io} i.O.</span></td>
+                            <td><span class="data-badge nio">${entry.nio} n.i.O.</span></td>
+                            <td>${entry.total}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                tableContent = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Start</th>
+                                <th>Ende</th>
+                                <th>Prüfer</th>
+                                <th>TBK-Nr.</th>
+                                <th>Teil</th>
+                                <th>i.O.</th>
+                                <th>n.i.O.</th>
+                                <th>Gesamt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            modal.innerHTML = `
+                <div class="modal-content database-modal-content">
+                    <div class="database-header">
+                        <h2>🗄️ Prüfungen Datenbank</h2>
+                        <button class="database-close-btn" onclick="closeModal()">×</button>
+                    </div>
+                    <div class="database-body">
+                        ${tableContent}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function openStörungDatabase() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'databaseModal';
+            modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+            const störungen = state.störungen.sort((a, b) => b.id - a.id);
+
+            let tableContent = '';
+            if (störungen.length === 0) {
+                tableContent = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-text">Noch keine Störungen vorhanden</div>
+                    </div>
+                `;
+            } else {
+                const rows = störungen.map(entry => {
+                    const durationText = entry.duration !== null ? `${entry.duration} Min` : 'Läuft...';
+                    return `
+                        <tr>
+                            <td>${entry.timestamp}</td>
+                            <td>${entry.prüfnummer}</td>
+                            <td>${entry.type}</td>
+                            <td><span class="data-badge störung">${durationText}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+
+                tableContent = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Zeitstempel</th>
+                                <th>Prüfer</th>
+                                <th>Störungsgrund</th>
+                                <th>Dauer</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            modal.innerHTML = `
+                <div class="modal-content database-modal-content">
+                    <div class="database-header">
+                        <h2>⚠️ Störungen Datenbank</h2>
+                        <button class="database-close-btn" onclick="closeModal()">×</button>
+                    </div>
+                    <div class="database-body">
+                        ${tableContent}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('prüfungModal') || document.getElementById('störungModal') || document.getElementById('databaseModal') || document.getElementById('teilekartenModal');
+            if (modal) modal.remove();
+        }
+
+        function showSuccess(msg) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `position: fixed; top: 30px; right: 30px; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 20px 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4); font-weight: 600; z-index: 10000;`;
+            toast.textContent = '✓ ' + msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+
+
+        function toggleStatus() {
+            state.machineActive = !state.machineActive;
+            const toggle = document.getElementById('statusToggle');
+            const text = document.getElementById('statusText');
+            
+            if (state.machineActive) {
+                toggle.classList.remove('inactive');
+                toggle.classList.add('active');
+                text.textContent = 'In Betrieb';
+            } else {
+                toggle.classList.remove('active');
+                toggle.classList.add('inactive');
+                text.textContent = 'Außer Betrieb';
+            }
+            updateContentGlow();
+        }
+    </script>
+
+    <!-- MDE v2 Module -->
+    <script src="./js/timeline.js"></script>
+    <script src="./js/auto-mode.js"></script>
+    <script src="./js/manual-mode.js"></script>
+    <script src="./js/prüfung-summary.js"></script>
+    <script src="./js/mde-main.js"></script>
+</body>
+</html>
