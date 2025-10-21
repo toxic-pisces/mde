@@ -969,14 +969,16 @@
 
         /* Störung Options */
         .störung-options {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+            max-height: 50vh;
+            overflow-y: auto;
         }
 
         .störung-option {
-            padding: 20px;
+            padding: 16px;
             border: 2px solid #e2e8f0;
             border-radius: 12px;
             cursor: pointer;
@@ -996,7 +998,7 @@
         }
 
         .störung-option h3 {
-            font-size: 18px;
+            font-size: 16px;
             color: #1a202c;
             font-weight: 600;
         }
@@ -1037,6 +1039,100 @@
             font-weight: 700;
             color: #f59e0b;
             margin-top: 15px;
+        }
+
+        /* Simulation Button */
+        .simulation-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(239, 68, 68, 0.15);
+            backdrop-filter: blur(8px);
+            border: 2px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 28px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 1500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+        }
+
+        .simulation-btn:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .simulation-btn.active {
+            background: rgba(239, 68, 68, 0.9);
+            border-color: #ef4444;
+            color: white;
+            animation: pulseAlert 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseAlert {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        }
+
+        /* Stillstand Overlay */
+        .stillstand-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .stillstand-content {
+            text-align: center;
+            color: white;
+        }
+
+        .stillstand-icon {
+            font-size: 120px;
+            margin-bottom: 30px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .stillstand-title {
+            font-size: 80px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .stillstand-subtitle {
+            font-size: 32px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .stillstand-info {
+            margin-top: 40px;
+            padding: 20px 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stillstand-info p {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 8px 0;
         }
 
         @keyframes fadeIn {
@@ -1089,12 +1185,31 @@
 
     <!-- Main Application -->
     <div id="mainApp" class="main-container hidden">
+        <!-- Simulation Button -->
+        <button class="simulation-btn" id="simulationBtn" onclick="toggleSimulation()" title="Stillstand simulieren">
+            <span id="simIcon">🔧</span>
+        </button>
+
+        <!-- Stillstand Overlay -->
+        <div id="stillstandOverlay" class="stillstand-overlay hidden">
+            <div class="stillstand-content">
+                <div class="stillstand-icon">⚠️</div>
+                <div class="stillstand-title">STILLSTAND</div>
+                <div class="stillstand-subtitle">Maschine außer Betrieb</div>
+                <div class="stillstand-info" id="stillstandInfo">
+                    <p id="störungTyp">-</p>
+                    <p id="störungDauer">-</p>
+                </div>
+            </div>
+        </div>
+
         <div class="sidebar">
             <div class="user-profile">
                 <div class="user-avatar">👤</div>
                 <div class="user-name" id="userName">Prüfer</div>
             </div>
             <button class="sidebar-btn database-btn" onclick="openDatabase()" title="Datenbank">🗄️</button>
+            <button class="sidebar-btn" onclick="openStörungDatabase()" title="Störungen" style="background: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.3);">⚠️</button>
             <button class="sidebar-btn" onclick="logout()" title="Abmelden">🚪</button>
         </div>
 
@@ -1142,7 +1257,9 @@
             störungen: [],
             prüfungAktiv: false,
             currentTeilekarte: null,
-            prüfungStartzeit: null
+            prüfungStartzeit: null,
+            stillstandSimulation: false,
+            currentStillstand: null
         };
 
         const availableParts = [
@@ -1690,33 +1807,80 @@
         }
 
         function openStörungModal() {
+            const isSimulation = state.stillstandSimulation;
+            const modalTitle = isSimulation ? 'Stillstand melden' : 'Störung melden';
+            
             const modal = document.createElement('div');
             modal.className = 'modal';
             modal.id = 'störungModal';
             modal.onclick = (e) => { if (e.target === modal) closeModal(); };
 
+            // Kein Schieberegler mehr bei Simulation
+            const durationSection = (!isSimulation) ? `
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 10px;">Dauer in Minuten:</label>
+                    <input type="range" class="timeline-slider" id="störungDuration" min="1" max="120" value="30" oninput="updateDuration()">
+                    <div class="timeline-value" id="durationDisplay">30 min</div>
+                </div>
+            ` : '';
+
             modal.innerHTML = `
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2>⚠️ Störung melden</h2>
+                        <h2>⚠️ ${modalTitle}</h2>
                     </div>
                     <div class="modal-body">
                         <div class="störung-options">
-                        <div class="störung-option" onclick="selectStörung(this, 'Technischer Defekt')">
-                            <h3>🔧 Technischer Defekt</h3>
+                            <div class="störung-option" onclick="selectStörung(this, 'Kalibrierung fehlgeschlagen')">
+                                <h3>🔧 Kalibrierung fehlgeschlagen</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'NIO voll')">
+                                <h3>📦 NIO voll</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Teile Zuführung')">
+                                <h3>⬇️ Teile Zuführung</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Reperatur')">
+                                <h3>🔨 Reperatur</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Rabbit Prüfung')">
+                                <h3>🐰 Rabbit Prüfung</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Keine Rohlinge')">
+                                <h3>❌ Keine Rohlinge</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Teile Abführung')">
+                                <h3>⬆️ Teile Abführung</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Dokumentation')">
+                                <h3>📄 Dokumentation</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Monteur Einsatz')">
+                                <h3>👷 Monteur Einsatz</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Ablauffehler')">
+                                <h3>⚠️ Ablauffehler</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Aushilfe andere Anlage')">
+                                <h3>🔄 Aushilfe andere Anlage</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Sonstiges')">
+                                <h3>📝 Sonstiges</h3>
+                            </div>
                         </div>
-                        <div class="störung-option" onclick="selectStörung(this, 'Material fehlt')">
-                            <h3>📦 Material fehlt</h3>
+                        
+                        <div id="sonstigesInput" class="hidden" style="margin-bottom: 20px;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 10px;">Bitte beschreiben Sie die Störung:</label>
+                            <input type="text" 
+                                   id="sonstigesText" 
+                                   placeholder="Störungsgrund eingeben"
+                                   style="width: 100%; padding: 16px 20px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 12px; transition: all 0.2s ease;"
+                                   onfocus="this.style.borderColor='#2a5298'; this.style.boxShadow='0 0 0 3px rgba(42, 82, 152, 0.1)';"
+                                   onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
                         </div>
-                        <div class="störung-option" onclick="selectStörung(this, 'Qualitätsproblem')">
-                            <h3>⚠️ Qualitätsproblem</h3>
-                        </div>
-                        </div>
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; font-weight: 600; margin-bottom: 10px;">Dauer in Minuten:</label>
-                            <input type="range" class="timeline-slider" id="störungDuration" min="1" max="120" value="30" oninput="updateDuration()">
-                            <div class="timeline-value" id="durationDisplay">30 min</div>
-                        </div>
+
+                        ${durationSection}
+                        
                         <div class="modal-buttons">
                             <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
                             <button class="btn-primary" onclick="saveStörung()">Bestätigen</button>
@@ -1732,6 +1896,17 @@
             document.querySelectorAll('.störung-option').forEach(e => e.classList.remove('selected'));
             el.classList.add('selected');
             selectedStörung = type;
+            
+            // Show/hide text input for "Sonstiges"
+            const sonstigesInput = document.getElementById('sonstigesInput');
+            if (type === 'Sonstiges') {
+                sonstigesInput.classList.remove('hidden');
+                setTimeout(() => {
+                    document.getElementById('sonstigesText').focus();
+                }, 100);
+            } else {
+                sonstigesInput.classList.add('hidden');
+            }
         }
 
         function updateDuration() {
@@ -1744,7 +1919,28 @@
                 alert('Bitte wählen Sie eine Störung aus!');
                 return;
             }
-            const duration = parseInt(document.getElementById('störungDuration').value);
+            
+            let störungText = selectedStörung;
+            
+            // If "Sonstiges" is selected, get custom text
+            if (selectedStörung === 'Sonstiges') {
+                const customText = document.getElementById('sonstigesText').value.trim();
+                if (!customText) {
+                    alert('Bitte beschreiben Sie die Störung!');
+                    return;
+                }
+                störungText = 'Sonstiges: ' + customText;
+            }
+            
+            const isSimulation = state.stillstandSimulation;
+            let duration;
+            
+            if (isSimulation) {
+                // For simulation, duration is calculated when ending
+                duration = null;
+            } else {
+                duration = parseInt(document.getElementById('störungDuration').value);
+            }
             
             const now = new Date();
             const timestamp = now.toLocaleString('de-DE', {
@@ -1758,16 +1954,100 @@
             const störung = {
                 id: Date.now(),
                 timestamp: timestamp,
+                startTime: isSimulation ? now : null,
+                endTime: null,
                 prüfnummer: state.prüfnummer,
-                type: selectedStörung,
+                type: störungText,
                 duration: duration,
+                isSimulation: isSimulation,
                 störungType: 'störung'
             };
             state.störungen.push(störung);
             console.log('Störung gespeichert:', störung);
+            
             closeModal();
             selectedStörung = null;
-            showSuccess(`Störung gemeldet: ${selectedStörung} (${duration} Min)`);
+            
+            // If simulation mode, activate stillstand overlay
+            if (isSimulation) {
+                state.currentStillstand = störung;
+                showStillstandOverlay();
+            } else {
+                showSuccess(`Störung gemeldet: ${störungText} (${duration} Min)`);
+            }
+        }
+
+        // Simulation Mode Functions
+        function toggleSimulation() {
+            state.stillstandSimulation = !state.stillstandSimulation;
+            const btn = document.getElementById('simulationBtn');
+            const icon = document.getElementById('simIcon');
+            
+            if (state.stillstandSimulation) {
+                btn.classList.add('active');
+                icon.textContent = '⚠️';
+                
+                // Open Störung Modal immediately
+                openStörungModal();
+            } else {
+                btn.classList.remove('active');
+                icon.textContent = '🔧';
+                
+                // Calculate duration and update störung
+                if (state.currentStillstand) {
+                    const endTime = new Date();
+                    const durationMs = endTime - state.currentStillstand.startTime;
+                    const durationMin = Math.round(durationMs / 60000);
+                    
+                    // Update the störung entry
+                    const störung = state.störungen.find(s => s.id === state.currentStillstand.id);
+                    if (störung) {
+                        störung.endTime = endTime;
+                        störung.duration = durationMin;
+                    }
+                    
+                    showSuccess(`Stillstand beendet: ${durationMin} Minuten`);
+                }
+                
+                // Hide stillstand overlay
+                hideStillstandOverlay();
+                state.currentStillstand = null;
+            }
+        }
+
+        function showStillstandOverlay() {
+            const overlay = document.getElementById('stillstandOverlay');
+            overlay.classList.remove('hidden');
+            
+            if (state.currentStillstand) {
+                document.getElementById('störungTyp').textContent = `Grund: ${state.currentStillstand.type}`;
+                // Timer anzeigen
+                updateStillstandTimer();
+                if (!window.stillstandTimerInterval) {
+                    window.stillstandTimerInterval = setInterval(updateStillstandTimer, 1000);
+                }
+            }
+        }
+
+        function updateStillstandTimer() {
+            if (!state.currentStillstand || !state.currentStillstand.startTime) return;
+            const start = new Date(state.currentStillstand.startTime);
+            const now = new Date();
+            let diff = Math.floor((now - start) / 1000);
+            const h = Math.floor(diff / 3600).toString().padStart(2, '0');
+            diff = diff % 3600;
+            const m = Math.floor(diff / 60).toString().padStart(2, '0');
+            const s = (diff % 60).toString().padStart(2, '0');
+            document.getElementById('störungDauer').textContent = `Dauer: ${h}:${m}:${s}`;
+        }
+
+        function hideStillstandOverlay() {
+            const overlay = document.getElementById('stillstandOverlay');
+            overlay.classList.add('hidden');
+            if (window.stillstandTimerInterval) {
+                clearInterval(window.stillstandTimerInterval);
+                window.stillstandTimerInterval = null;
+            }
         }
 
         function openDatabase() {
@@ -1776,13 +2056,10 @@
             modal.id = 'databaseModal';
             modal.onclick = (e) => { if (e.target === modal) closeModal(); };
 
-            const allEntries = [
-                ...state.prüfungen.map(p => ({...p, entryType: 'prüfung'})),
-                ...state.störungen.map(s => ({...s, entryType: 'störung'}))
-            ].sort((a, b) => b.id - a.id);
+            const prüfungen = state.prüfungen.sort((a, b) => b.id - a.id);
 
             let tableContent = '';
-            if (allEntries.length === 0) {
+            if (prüfungen.length === 0) {
                 tableContent = `
                     <div class="empty-state">
                         <div class="empty-state-icon">📊</div>
@@ -1790,36 +2067,20 @@
                     </div>
                 `;
             } else {
-                const rows = allEntries.map(entry => {
-                    if (entry.entryType === 'prüfung') {
-                        const tbkNr = entry.teilekarte ? entry.teilekarte.teilekartenNr : '-';
-                        return `
-                            <tr>
-                                <td>${entry.startzeit || '-'}</td>
-                                <td>${entry.endzeit || '-'}</td>
-                                <td><span class="data-badge io">Prüfung</span></td>
-                                <td>${entry.prüfnummer}</td>
-                                <td>${tbkNr}</td>
-                                <td>${entry.part}</td>
-                                <td><span class="data-badge io">${entry.io} i.O.</span></td>
-                                <td><span class="data-badge nio">${entry.nio} n.i.O.</span></td>
-                                <td>${entry.total}</td>
-                            </tr>
-                        `;
-                    } else {
-                        return `
-                            <tr>
-                                <td>${entry.timestamp}</td>
-                                <td>-</td>
-                                <td><span class="data-badge störung">Störung</span></td>
-                                <td>${entry.prüfnummer}</td>
-                                <td>-</td>
-                                <td>${entry.type}</td>
-                                <td colspan="2">${entry.duration} Min</td>
-                                <td>-</td>
-                            </tr>
-                        `;
-                    }
+                const rows = prüfungen.map(entry => {
+                    const tbkNr = entry.teilekarte ? entry.teilekarte.teilekartenNr : '-';
+                    return `
+                        <tr>
+                            <td>${entry.startzeit || '-'}</td>
+                            <td>${entry.endzeit || '-'}</td>
+                            <td>${entry.prüfnummer}</td>
+                            <td>${tbkNr}</td>
+                            <td>${entry.part}</td>
+                            <td><span class="data-badge io">${entry.io} i.O.</span></td>
+                            <td><span class="data-badge nio">${entry.nio} n.i.O.</span></td>
+                            <td>${entry.total}</td>
+                        </tr>
+                    `;
                 }).join('');
 
                 tableContent = `
@@ -1828,7 +2089,6 @@
                             <tr>
                                 <th>Start</th>
                                 <th>Ende</th>
-                                <th>Typ</th>
                                 <th>Prüfer</th>
                                 <th>TBK-Nr.</th>
                                 <th>Teil</th>
@@ -1847,7 +2107,67 @@
             modal.innerHTML = `
                 <div class="modal-content database-modal-content">
                     <div class="database-header">
-                        <h2>🗄️ Datenbank</h2>
+                        <h2>🗄️ Prüfungen Datenbank</h2>
+                        <button class="database-close-btn" onclick="closeModal()">×</button>
+                    </div>
+                    <div class="database-body">
+                        ${tableContent}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function openStörungDatabase() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'databaseModal';
+            modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+            const störungen = state.störungen.sort((a, b) => b.id - a.id);
+
+            let tableContent = '';
+            if (störungen.length === 0) {
+                tableContent = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-text">Noch keine Störungen vorhanden</div>
+                    </div>
+                `;
+            } else {
+                const rows = störungen.map(entry => {
+                    const durationText = entry.duration !== null ? `${entry.duration} Min` : 'Läuft...';
+                    return `
+                        <tr>
+                            <td>${entry.timestamp}</td>
+                            <td>${entry.prüfnummer}</td>
+                            <td>${entry.type}</td>
+                            <td><span class="data-badge störung">${durationText}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+
+                tableContent = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Zeitstempel</th>
+                                <th>Prüfer</th>
+                                <th>Störungsgrund</th>
+                                <th>Dauer</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            modal.innerHTML = `
+                <div class="modal-content database-modal-content">
+                    <div class="database-header">
+                        <h2>⚠️ Störungen Datenbank</h2>
                         <button class="database-close-btn" onclick="closeModal()">×</button>
                     </div>
                     <div class="database-body">
