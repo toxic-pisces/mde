@@ -9,6 +9,9 @@
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#2a5298">
     
+    <!-- Barcode Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -249,12 +252,12 @@
         /* Content Area */
         .content {
             flex: 1;
-            padding: 30px;
+            padding: 40px;
             overflow: hidden;
             display: flex;
-            align-items: center;
-            justify-content: center;
+            flex-direction: column;
             position: relative;
+            background: #f8fafc;
         }
 
         .content::before {
@@ -295,106 +298,93 @@
             }
         }
 
-        /* Machine Card */
-        .machine-card {
-            background: white;
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-            width: 100%;
-            max-width: 1100px;
-            display: grid;
-            grid-template-rows: auto auto 1fr auto;
-            gap: 30px;
-            height: calc(100vh - 60px);
+        /* Main Layout without Card */
+        .machine-screen {
             position: relative;
             z-index: 1;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 40px;
+            height: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
         }
 
-        .machine-header {
+        .machine-image-section {
+            grid-row: 1 / 4;
             display: flex;
-            align-items: center;
-            gap: 30px;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .machine-image {
-            width: 180px;
-            height: 180px;
+            width: 100%;
+            height: 300px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 80px;
             box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
-            overflow: hidden;
-            flex-shrink: 0;
         }
 
         .machine-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            width: 90%;
+            height: 90%;
+            object-fit: contain;
+            border-radius: 12px;
         }
 
-        .machine-info-top {
-            flex: 1;
+        .machine-header-section {
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
 
         .machine-name {
-            font-size: 32px;
+            font-size: 3rem;
             font-weight: 700;
             color: #1a202c;
+            letter-spacing: -1px;
             margin: 0;
-            letter-spacing: -0.5px;
         }
 
         .status-toggle {
             display: inline-flex;
             align-items: center;
             gap: 12px;
-            padding: 16px 24px;
+            padding: 18px 32px;
             border-radius: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 700;
-            font-size: 16px;
+            font-size: 1.2rem;
+            font-weight: 600;
             border: none;
-            width: fit-content;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .status-toggle.active {
             background: linear-gradient(135deg, #10b981, #059669);
             color: white;
-            box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
-            animation: glowGreen 2s ease-in-out infinite;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+            width: fit-content;
         }
 
         .status-toggle.inactive {
             background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-            box-shadow: 0 0 30px rgba(239, 68, 68, 0.5);
-            animation: glowRed 2s ease-in-out infinite;
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
         }
 
-        @keyframes glowGreen {
-            0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
-            50% { box-shadow: 0 0 40px rgba(16, 185, 129, 0.8), 0 0 60px rgba(16, 185, 129, 0.4); }
+        .status-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
         }
 
-        @keyframes glowRed {
-            0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
-            50% { box-shadow: 0 0 40px rgba(239, 68, 68, 0.8), 0 0 60px rgba(239, 68, 68, 0.4); }
+        .status-toggle.inactive:hover {
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
         }
 
         .status-indicator {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             background: white;
             animation: pulse 2s ease-in-out infinite;
@@ -405,102 +395,228 @@
             50% { opacity: 0.5; }
         }
 
-        .part-selection-area {
+        .part-section {
+            background: white;
+            padding: 28px 32px;
+            border-radius: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
             display: flex;
-            align-items: center;
-            gap: 20px;
+            flex-direction: column;
+            gap: 16px;
         }
 
-        .part-selector-wrapper {
-            flex: 1;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            padding: 24px;
-            border-radius: 16px;
-            border: 2px solid #e2e8f0;
+        .part-info-row {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 20px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
         }
 
-        .part-label {
-            font-size: 13px;
+        .part-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .part-info-label {
+            font-size: 0.85rem;
             font-weight: 600;
             color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .current-part-display {
-            flex: 1;
-            padding: 18px 24px;
-            background: white;
-            border: 2px solid #cbd5e1;
-            border-radius: 12px;
-            font-size: 20px;
+        .part-info-value {
+            font-size: 1.1rem;
             font-weight: 700;
             color: #1a202c;
+            text-align: right;
+        }
+
+        .part-info-value.highlight {
+            color: #2a5298;
+            font-size: 1.3rem;
+        }
+
+        .no-active-inspection {
             text-align: center;
+            padding: 20px;
+            color: #94a3b8;
+            font-size: 0.95rem;
+            font-style: italic;
         }
 
-        .change-part-btn {
-            padding: 18px 32px;
-            background: linear-gradient(135deg, #2a5298, #1e3c72);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(42, 82, 152, 0.3);
-            white-space: nowrap;
-        }
-
-        .change-part-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(42, 82, 152, 0.4);
-        }
-
-        .action-buttons {
+        .action-buttons-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: auto;
+            gap: 32px;
         }
 
         .action-btn {
-            padding: 32px;
-            font-size: 20px;
-            font-weight: 600;
+            padding: 40px 32px;
+            font-size: 1.4rem;
+            font-weight: 700;
             border: none;
-            border-radius: 16px;
+            border-radius: 20px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 12px;
             color: white;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
         }
 
         .btn-complete {
             background: linear-gradient(135deg, #10b981, #059669);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
 
         .btn-complete:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(16, 185, 129, 0.3);
         }
 
         .btn-störung {
             background: linear-gradient(135deg, #f59e0b, #d97706);
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
         }
 
         .btn-störung:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(245, 158, 11, 0.3);
+        }
+
+        /* Barcode Scanner Modal */
+        .scanner-modal {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .scanner-header {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            padding: 28px 35px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .scanner-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin: 0;
+        }
+
+        .scanner-close-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .scanner-close-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        .scanner-body {
+            padding: 35px;
+        }
+
+        #reader {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 3px solid #e2e8f0;
+            background: #000;
+        }
+
+        #reader video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .scanner-status {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            text-align: center;
+        }
+
+        .scanner-status.success {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #047857;
+        }
+
+        .scanner-status.error {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .scanner-status-text {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .scanner-result {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 20px;
+            font-weight: 700;
+            color: #2a5298;
+            letter-spacing: 2px;
+        }
+
+        .scanner-fallback {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .scanner-fallback-text {
+            color: #64748b;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .scanner-fallback input {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            text-align: center;
+            letter-spacing: 1px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .scanner-fallback input:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
         }
 
         /* Modal */
@@ -954,15 +1070,15 @@
             <h1>Maschinen Prüfsystem</h1>
             <div class="login-display empty" id="loginDisplay">Prüfnummer eingeben</div>
             <div class="login-numpad">
-                <button class="login-numpad-btn" onclick="addLoginDigit('7')">7</button>
-                <button class="login-numpad-btn" onclick="addLoginDigit('8')">8</button>
-                <button class="login-numpad-btn" onclick="addLoginDigit('9')">9</button>
-                <button class="login-numpad-btn" onclick="addLoginDigit('4')">4</button>
-                <button class="login-numpad-btn" onclick="addLoginDigit('5')">5</button>
-                <button class="login-numpad-btn" onclick="addLoginDigit('6')">6</button>
                 <button class="login-numpad-btn" onclick="addLoginDigit('1')">1</button>
                 <button class="login-numpad-btn" onclick="addLoginDigit('2')">2</button>
                 <button class="login-numpad-btn" onclick="addLoginDigit('3')">3</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('4')">4</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('5')">5</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('6')">6</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('7')">7</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('8')">8</button>
+                <button class="login-numpad-btn" onclick="addLoginDigit('9')">9</button>
                 <button class="login-numpad-btn special" onclick="clearLoginInput()">⌫</button>
                 <button class="login-numpad-btn" onclick="addLoginDigit('0')">0</button>
                 <button class="login-numpad-btn special" onclick="clearAllLogin()">C</button>
@@ -983,36 +1099,34 @@
         </div>
 
         <div class="content">
-            <div class="machine-card">
-                <div class="machine-header">
+            <div class="machine-screen">
+                <div class="machine-image-section">
                     <div class="machine-image">
                         <img src="./images/machine.png" alt="Maschine" onerror="this.style.display='none'; this.parentElement.innerHTML='⚙️';">
                     </div>
-                    
-                    <div class="machine-info-top">
-                        <h1 class="machine-name">Maschine 01</h1>
-                        <button class="status-toggle active" id="statusToggle" onclick="toggleStatus()">
-                            <span class="status-indicator"></span>
-                            <span id="statusText">In Betrieb</span>
-                        </button>
-                    </div>
-
-                    <div class="part-selection-area">
-                        <div class="part-selector-wrapper">
-                            <div class="part-label">Aktuelles Teil</div>
-                            <div class="current-part-display" id="currentPartDisplay">Housing A</div>
-                            <button class="change-part-btn" onclick="openPartModal()">
-                                ✏️ Teil wechseln
-                            </button>
+                    <div class="part-section" id="partSection">
+                        <div class="no-active-inspection">
+                            Keine aktive Prüfung
                         </div>
                     </div>
+                </div>
 
-                    <div class="action-buttons">
-                    <button class="action-btn btn-complete" onclick="openPrüfungModal()">
-                        ✓ Prüfung abgeschlossen
+                <div class="machine-header-section">
+                    <div class="machine-name">Maschine 01</div>
+                    <button class="status-toggle active" id="statusToggle" onclick="toggleStatus()">
+                        <span class="status-indicator"></span>
+                        <span id="statusText">In Betrieb</span>
+                    </button>
+                </div>
+
+                <div class="action-buttons-section">
+                    <button class="action-btn btn-complete" id="mainActionBtn" onclick="handleMainAction()">
+                        <span style="font-size: 2.5rem;">▶</span>
+                        <span id="mainActionText">Prüfung starten</span>
                     </button>
                     <button class="action-btn btn-störung" onclick="openStörungModal()">
-                        ⚠️ Störungen
+                        <span style="font-size: 2.5rem;">⚠️</span>
+                        <span>Störung melden</span>
                     </button>
                 </div>
             </div>
@@ -1025,7 +1139,9 @@
             currentPart: 'Housing A',
             machineActive: true,
             prüfungen: [],
-            störungen: []
+            störungen: [],
+            prüfungAktiv: false,
+            currentTeilekarte: null
         };
 
         const availableParts = [
@@ -1091,19 +1207,327 @@
         function logout() {
             if (confirm('Möchten Sie sich wirklich abmelden?')) {
                 state.prüfnummer = '';
+                state.prüfungAktiv = false;
+                state.currentTeilekarte = null;
                 loginValue = '';
                 updateLoginDisplay();
+                updateMainButton();
                 document.getElementById('loginScreen').classList.remove('hidden');
                 document.getElementById('mainApp').classList.add('hidden');
             }
         }
 
+        function updateMainButton() {
+            const btn = document.getElementById('mainActionBtn');
+            const icon = btn.querySelector('span:first-child');
+            const text = document.getElementById('mainActionText');
+            const partBtn = document.querySelector('.change-part-btn');
+            
+            if (state.prüfungAktiv) {
+                icon.textContent = '✓';
+                text.textContent = 'Prüfung abschließen';
+                btn.classList.add('btn-complete');
+                btn.classList.remove('btn-start');
+                if (partBtn) partBtn.disabled = true;
+            } else {
+                icon.textContent = '▶';
+                text.textContent = 'Prüfung starten';
+                btn.classList.remove('btn-complete');
+                btn.classList.add('btn-start');
+                if (partBtn) partBtn.disabled = false;
+            }
+        }
+
+        function handleMainAction() {
+            if (state.prüfungAktiv) {
+                // Prüfung abschließen
+                openPrüfungModal();
+            } else {
+                // Prüfung starten - Barcode scannen
+                openBarcodeScanner();
+            }
+        }
+
+        // Barcode Scanner
+        let html5QrcodeScanner = null;
+        let scanInProgress = false;
+
+        function openBarcodeScanner() {
+            scanInProgress = false;
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'barcodeModal';
+            modal.onclick = (e) => {
+                if (e.target === modal) closeBarcodeScanner();
+            };
+
+            modal.innerHTML = `
+                <div class="scanner-modal">
+                    <div class="scanner-header">
+                        <h2>📷 Barcode Scanner</h2>
+                        <button class="scanner-close-btn" onclick="closeBarcodeScanner()">×</button>
+                    </div>
+                    <div class="scanner-body">
+                        <div id="reader"></div>
+                        <div class="scanner-status" id="scannerStatus">
+                            <p class="scanner-status-text">Richte die Kamera auf einen Barcode...</p>
+                        </div>
+                        <div class="scanner-fallback">
+                            <p class="scanner-fallback-text">oder gib den Code manuell ein:</p>
+                            <input
+                                type="text"
+                                id="manualBarcodeInput"
+                                placeholder="Barcode eingeben"
+                                onkeypress="if(event.key === 'Enter') submitManualBarcode()"
+                            />
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            startBarcodeScanner();
+        }
+
+        function startBarcodeScanner() {
+            const config = {
+                fps: 20,
+                qrbox: { width: 400, height: 150 },
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.QR_CODE,
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E
+                ],
+                rememberLastUsedCamera: true,
+                aspectRatio: 1.777778
+            };
+
+            html5QrcodeScanner = new Html5Qrcode("reader");
+
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                config,
+                onScanSuccess,
+                onScanError
+            ).catch(err => {
+                console.error("Camera start error:", err);
+                const status = document.getElementById('scannerStatus');
+                if (status) {
+                    status.className = 'scanner-status error';
+                    status.innerHTML = `
+                        <p class="scanner-status-text">⚠️ Kamera-Zugriff verweigert oder nicht verfügbar</p>
+                        <p style="font-size: 13px; margin-top: 10px; font-weight: normal;">Bitte verwende die manuelle Eingabe unten.</p>
+                    `;
+                }
+                setTimeout(() => {
+                    const input = document.getElementById('manualBarcodeInput');
+                    if (input) input.focus();
+                }, 300);
+            });
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if (scanInProgress) return;
+            scanInProgress = true;
+
+            if ('vibrate' in navigator) {
+                navigator.vibrate(200);
+            }
+
+            const status = document.getElementById('scannerStatus');
+            if (status) {
+                status.className = 'scanner-status success';
+                status.innerHTML = `
+                    <p class="scanner-status-text">✓ Erfolgreich gescannt!</p>
+                    <div class="scanner-result">${decodedText}</div>
+                `;
+            }
+
+            setTimeout(() => {
+                processBarcodeResult(decodedText);
+            }, 500);
+        }
+
+        function onScanError(errorMessage) {
+            // Silently ignore scan errors
+        }
+
+        function submitManualBarcode() {
+            const input = document.getElementById('manualBarcodeInput');
+            const barcode = input.value.trim();
+
+            if (barcode.length > 0) {
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(200);
+                }
+
+                const status = document.getElementById('scannerStatus');
+                if (status) {
+                    status.className = 'scanner-status success';
+                    status.innerHTML = `
+                        <p class="scanner-status-text">✓ Manuell eingegeben!</p>
+                        <div class="scanner-result">${barcode}</div>
+                    `;
+                }
+
+                setTimeout(() => {
+                    processBarcodeResult(barcode);
+                }, 1000);
+            }
+        }
+
+        function processBarcodeResult(barcode) {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    html5QrcodeScanner.clear();
+                    html5QrcodeScanner = null;
+                }).catch(err => {
+                    console.error("Error stopping scanner:", err);
+                    html5QrcodeScanner = null;
+                });
+            }
+
+            const modal = document.getElementById('barcodeModal');
+            if (modal) modal.remove();
+
+            // Generate random data for demo
+            const teilekartenNr = barcode;
+            const chargeNr = 'CH-' + Math.floor(Math.random() * 900 + 100);
+            const laufkartenNr = 'LK-' + Math.floor(Math.random() * 9000 + 1000);
+            const teil = availableParts[Math.floor(Math.random() * availableParts.length)];
+
+            showTeilekartenInfo(teilekartenNr, chargeNr, laufkartenNr, teil);
+        }
+
+        function closeBarcodeScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    html5QrcodeScanner.clear();
+                    html5QrcodeScanner = null;
+                }).catch(err => {
+                    console.error("Error stopping scanner:", err);
+                    html5QrcodeScanner = null;
+                });
+            }
+
+            const modal = document.getElementById('barcodeModal');
+            if (modal) modal.remove();
+
+            scanInProgress = false;
+        }
+
+        function showTeilekartenInfo(teilekartenNr, chargeNr, laufkartenNr, teil) {
+            closeModal();
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'teilekartenModal';
+            modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>✓ Teilekarte erfasst</h2>
+                    </div>
+                    <div class="modal-body">
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <div style="padding: 24px; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 3px solid #2a5298; border-radius: 16px;">
+                                <div style="display: grid; gap: 16px;">
+                                    <div>
+                                        <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 8px;">Teil</div>
+                                        <div style="font-size: 24px; font-weight: 700; color: #1a202c;">📦 ${teil}</div>
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                        <div>
+                                            <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 8px;">Teilekarten-Nr.</div>
+                                            <div style="font-size: 18px; font-weight: 700; color: #2a5298;">${teilekartenNr}</div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 8px;">Charge-Nr.</div>
+                                            <div style="font-size: 18px; font-weight: 700; color: #2a5298;">${chargeNr}</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 8px;">Laufkarten-Nr.</div>
+                                        <div style="font-size: 18px; font-weight: 700; color: #2a5298;">${laufkartenNr}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p style="text-align: center; color: #64748b; font-size: 16px;">Bitte überprüfen Sie die Daten und bestätigen Sie.</p>
+                        </div>
+                        <div class="modal-buttons">
+                            <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+                            <button class="btn-primary" onclick="startPrüfung('${teilekartenNr}', '${chargeNr}', '${laufkartenNr}', '${teil}')">Bestätigen & Starten</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function startPrüfung(teilekartenNr, chargeNr, laufkartenNr, teil) {
+            state.prüfungAktiv = true;
+            state.currentTeilekarte = {
+                teilekartenNr: teilekartenNr,
+                chargeNr: chargeNr,
+                laufkartenNr: laufkartenNr,
+                teil: teil
+            };
+            state.currentPart = teil;
+            
+            // Update UI
+            updatePartSection();
+            updateMainButton();
+            
+            closeModal();
+            showSuccess(`Prüfung gestartet für ${teil}`);
+        }
+
+        function updatePartSection() {
+            const section = document.getElementById('partSection');
+            
+            if (!state.prüfungAktiv || !state.currentTeilekarte) {
+                section.innerHTML = `
+                    <div class="no-active-inspection">
+                        Keine aktive Prüfung
+                    </div>
+                `;
+                return;
+            }
+
+            const tk = state.currentTeilekarte;
+            section.innerHTML = `
+                <div class="part-info-row">
+                    <span class="part-info-label">Teil</span>
+                    <span class="part-info-value highlight">${tk.teil}</span>
+                </div>
+                <div class="part-info-row">
+                    <span class="part-info-label">TBK-Nr.</span>
+                    <span class="part-info-value">${tk.teilekartenNr}</span>
+                </div>
+                <div class="part-info-row">
+                    <span class="part-info-label">Charge</span>
+                    <span class="part-info-value">${tk.chargeNr}</span>
+                </div>
+                <div class="part-info-row">
+                    <span class="part-info-label">Laufkarte</span>
+                    <span class="part-info-value">${tk.laufkartenNr}</span>
+                </div>
+            `;
+        }
+
         let currentInputField = 'io';
         let inputValues = { io: '', nio: '' };
+        let hasConfirmedIO = false;
 
         function openPrüfungModal() {
             currentInputField = 'io';
             inputValues = { io: '', nio: '' };
+            hasConfirmedIO = false;
 
             const modal = document.createElement('div');
             modal.className = 'modal';
@@ -1136,20 +1560,20 @@
 
                                 <div class="modal-buttons">
                                     <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
-                                    <button class="btn-primary" onclick="savePrüfung()">Bestätigen</button>
+                                    <button class="btn-primary" id="confirmBtn" onclick="handleConfirm()">Weiter zu n.i.O.</button>
                                 </div>
                             </div>
 
                             <div class="numpad">
-                                <button class="numpad-btn" onclick="addDigit('7')">7</button>
-                                <button class="numpad-btn" onclick="addDigit('8')">8</button>
-                                <button class="numpad-btn" onclick="addDigit('9')">9</button>
-                                <button class="numpad-btn" onclick="addDigit('4')">4</button>
-                                <button class="numpad-btn" onclick="addDigit('5')">5</button>
-                                <button class="numpad-btn" onclick="addDigit('6')">6</button>
                                 <button class="numpad-btn" onclick="addDigit('1')">1</button>
                                 <button class="numpad-btn" onclick="addDigit('2')">2</button>
                                 <button class="numpad-btn" onclick="addDigit('3')">3</button>
+                                <button class="numpad-btn" onclick="addDigit('4')">4</button>
+                                <button class="numpad-btn" onclick="addDigit('5')">5</button>
+                                <button class="numpad-btn" onclick="addDigit('6')">6</button>
+                                <button class="numpad-btn" onclick="addDigit('7')">7</button>
+                                <button class="numpad-btn" onclick="addDigit('8')">8</button>
+                                <button class="numpad-btn" onclick="addDigit('9')">9</button>
                                 <button class="numpad-btn special" onclick="clearInput()">⌫</button>
                                 <button class="numpad-btn" onclick="addDigit('0')">0</button>
                                 <button class="numpad-btn special" onclick="clearAll()">C</button>
@@ -1169,7 +1593,27 @@
             
             const label = field === 'io' ? 'i.O. Teileanzahl eingeben' : 'n.i.O. Teileanzahl eingeben';
             document.getElementById('activeLabel').textContent = label;
+            
+            // Update button text based on current field
+            const confirmBtn = document.getElementById('confirmBtn');
+            if (field === 'io' && !hasConfirmedIO) {
+                confirmBtn.textContent = 'Weiter zu n.i.O.';
+            } else {
+                confirmBtn.textContent = 'Bestätigen';
+            }
+            
             updateDisplay();
+        }
+
+        function handleConfirm() {
+            // If we're on i.O. field and haven't confirmed yet, switch to n.i.O.
+            if (currentInputField === 'io' && !hasConfirmedIO) {
+                hasConfirmedIO = true;
+                switchInputField('nio');
+            } else {
+                // Otherwise, save the Prüfung
+                savePrüfung();
+            }
         }
 
         function addDigit(digit) {
@@ -1214,6 +1658,7 @@
                 timestamp: timestamp,
                 prüfnummer: state.prüfnummer,
                 part: state.currentPart,
+                teilekarte: state.currentTeilekarte,
                 io: ioCount,
                 nio: nioCount,
                 total: ioCount + nioCount,
@@ -1221,6 +1666,13 @@
             };
             state.prüfungen.push(prüfung);
             console.log('Prüfung gespeichert:', prüfung);
+            
+            // Reset Prüfung
+            state.prüfungAktiv = false;
+            state.currentTeilekarte = null;
+            updateMainButton();
+            updatePartSection();
+            
             closeModal();
             showSuccess(`Prüfung gespeichert: ${ioCount} i.O. / ${nioCount} n.i.O.`);
         }
@@ -1388,7 +1840,7 @@
         }
 
         function closeModal() {
-            const modal = document.getElementById('prüfungModal') || document.getElementById('störungModal') || document.getElementById('databaseModal') || document.getElementById('partModal');
+            const modal = document.getElementById('prüfungModal') || document.getElementById('störungModal') || document.getElementById('databaseModal') || document.getElementById('teilekartenModal');
             if (modal) modal.remove();
         }
 
@@ -1417,53 +1869,6 @@
                 text.textContent = 'Außer Betrieb';
             }
             updateContentGlow();
-        }
-
-        function openPartModal() {
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.id = 'partModal';
-            modal.onclick = (e) => { if (e.target === modal) closeModal(); };
-
-            const partButtons = availableParts.map(part => `
-                <button class="störung-option ${part === state.currentPart ? 'selected' : ''}" onclick="selectPart('${part}')">
-                    <h3>📦 ${part}</h3>
-                </button>
-            `).join('');
-
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2>📦 Teil auswählen</h2>
-                    </div>
-                    <div class="modal-body">
-                        <div class="störung-options">
-                            ${partButtons}
-                        </div>
-                        <div class="modal-buttons">
-                            <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
-                            <button class="btn-primary" onclick="confirmPartChange()">Bestätigen</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-
-        let tempSelectedPart = null;
-        function selectPart(part) {
-            document.querySelectorAll('.störung-option').forEach(e => e.classList.remove('selected'));
-            event.target.closest('.störung-option').classList.add('selected');
-            tempSelectedPart = part;
-        }
-
-        function confirmPartChange() {
-            if (tempSelectedPart) {
-                state.currentPart = tempSelectedPart;
-                document.getElementById('currentPartDisplay').textContent = tempSelectedPart;
-                closeModal();
-                showSuccess(`Teil gewechselt zu: ${tempSelectedPart}`);
-            }
         }
     </script>
 </body>
