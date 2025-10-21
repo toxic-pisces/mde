@@ -1001,6 +1001,11 @@
             font-size: 16px;
             color: #1a202c;
             font-weight: 600;
+            position: relative;
+        }
+        
+        .störung-option {
+            position: relative;
         }
 
         .timeline-slider {
@@ -1640,11 +1645,15 @@
         let currentInputField = 'io';
         let inputValues = { io: '', nio: '' };
         let hasConfirmedIO = false;
+        let selectedFehler = [];
+        let showFehlerSelection = false;
 
         function openPrüfungModal() {
             currentInputField = 'io';
             inputValues = { io: '', nio: '' };
             hasConfirmedIO = false;
+            selectedFehler = [];
+            showFehlerSelection = false;
 
             const modal = document.createElement('div');
             modal.className = 'modal';
@@ -1728,9 +1737,114 @@
                 hasConfirmedIO = true;
                 switchInputField('nio');
             } else {
-                // Otherwise, save the Prüfung
-                savePrüfung();
+                // Check if we need to show Fehlermerkmale selection
+                const nioCount = parseInt(inputValues.nio) || 0;
+                if (nioCount > 0 && !showFehlerSelection) {
+                    showFehlerSelection = true;
+                    renderFehlermerkmaleSelection();
+                } else {
+                    // Otherwise, save the Prüfung
+                    savePrüfung();
+                }
             }
+        }
+
+        function renderFehlermerkmaleSelection() {
+            const modal = document.getElementById('prüfungModal');
+            if (!modal) return;
+
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>⚠️ Fehlermerkmale auswählen</h2>
+                    </div>
+                    <div class="modal-body">
+                        <p style="text-align: center; color: #64748b; margin-bottom: 30px; font-size: 16px;">
+                            Wählen Sie die Fehlermerkmale in der Reihenfolge ihrer Häufigkeit aus:
+                        </p>
+                        
+                        <div class="störung-options" style="margin-bottom: 30px;">
+                            <div class="störung-option" id="fehler-rundheit" onclick="selectFehler(this, 'Rundheit')">
+                                <h3>🔵 Rundheit</h3>
+                                <span class="fehler-nummer" style="display: none;"></span>
+                            </div>
+                            <div class="störung-option" id="fehler-durchmesser" onclick="selectFehler(this, 'Durchmesser')">
+                                <h3>⭕ Durchmesser</h3>
+                                <span class="fehler-nummer" style="display: none;"></span>
+                            </div>
+                            <div class="störung-option" id="fehler-laenge" onclick="selectFehler(this, 'Länge')">
+                                <h3>📏 Länge</h3>
+                                <span class="fehler-nummer" style="display: none;"></span>
+                            </div>
+                            <div class="störung-option" id="fehler-winkel" onclick="selectFehler(this, 'Winkel')">
+                                <h3>📐 Winkel</h3>
+                                <span class="fehler-nummer" style="display: none;"></span>
+                            </div>
+                        </div>
+
+                        <div class="modal-buttons">
+                            <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+                            <button class="btn-primary" onclick="savePrüfung()">Bestätigen</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectFehler(element, fehlerTyp) {
+            const fehlerNummerSpan = element.querySelector('.fehler-nummer');
+            
+            // Check if already selected
+            const existingIndex = selectedFehler.findIndex(f => f.type === fehlerTyp);
+            
+            if (existingIndex !== -1) {
+                // Deselect
+                selectedFehler.splice(existingIndex, 1);
+                element.classList.remove('selected');
+                fehlerNummerSpan.style.display = 'none';
+                
+                // Renumber remaining
+                updateFehlerNumbers();
+            } else {
+                // Select
+                const nummer = selectedFehler.length + 1;
+                selectedFehler.push({ type: fehlerTyp, nummer: nummer });
+                element.classList.add('selected');
+                fehlerNummerSpan.textContent = nummer;
+                fehlerNummerSpan.style.display = 'inline-block';
+                fehlerNummerSpan.style.cssText = `
+                    display: inline-block;
+                    background: #2a5298;
+                    color: white;
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 700;
+                    font-size: 14px;
+                    margin-left: 10px;
+                    position: absolute;
+                    right: 16px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                `;
+            }
+        }
+
+        function updateFehlerNumbers() {
+            // Update all selected fehler with new numbers
+            selectedFehler.forEach((fehler, index) => {
+                fehler.nummer = index + 1;
+                const element = document.getElementById(`fehler-${fehler.type.toLowerCase()}`);
+                if (element) {
+                    const nummerSpan = element.querySelector('.fehler-nummer');
+                    if (nummerSpan) {
+                        nummerSpan.textContent = fehler.nummer;
+                    }
+                }
+            });
         }
 
         function addDigit(digit) {
@@ -1790,6 +1904,7 @@
                 io: ioCount,
                 nio: nioCount,
                 total: ioCount + nioCount,
+                fehlermerkmale: selectedFehler.length > 0 ? selectedFehler : null,
                 type: 'prüfung'
             };
             state.prüfungen.push(prüfung);
