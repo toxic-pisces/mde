@@ -304,7 +304,7 @@
             z-index: 1;
             display: grid;
             grid-template-columns: 300px 1fr;
-            grid-template-rows: auto 1fr auto;
+            grid-template-rows: auto 1fr auto auto;
             gap: 40px;
             height: 100%;
             max-width: 1400px;
@@ -1046,100 +1046,209 @@
             margin-top: 15px;
         }
 
-        /* Simulation Button */
-        .simulation-btn {
+        /* Time Skip Button */
+        .timeskip-btn {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: rgba(239, 68, 68, 0.15);
+            background: rgba(59, 130, 246, 0.15);
             backdrop-filter: blur(8px);
-            border: 2px solid rgba(239, 68, 68, 0.3);
-            color: #ef4444;
-            padding: 12px;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            color: #3b82f6;
+            padding: 12px 20px;
             border-radius: 12px;
-            font-size: 28px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
             z-index: 1500;
             display: flex;
             align-items: center;
-            justify-content: center;
-            width: 56px;
-            height: 56px;
+            gap: 8px;
         }
 
-        .simulation-btn:hover {
-            background: rgba(239, 68, 68, 0.25);
-            border-color: rgba(239, 68, 68, 0.5);
+        .timeskip-btn:hover {
+            background: rgba(59, 130, 246, 0.25);
+            border-color: rgba(59, 130, 246, 0.5);
             transform: translateY(-2px);
         }
 
-        .simulation-btn.active {
-            background: rgba(239, 68, 68, 0.9);
-            border-color: #ef4444;
-            color: white;
-            animation: pulseAlert 2s ease-in-out infinite;
+        .timeskip-btn:active {
+            transform: scale(0.95);
         }
 
-        @keyframes pulseAlert {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        /* Timeline */
+        .timeline-container {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
         }
 
-        /* Stillstand Overlay */
-        .stillstand-overlay {
-            position: fixed;
-            inset: 0;
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        .timeline-header {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .timeline-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a202c;
+        }
+
+        .timeline-current-time {
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+        }
+
+        .timeline-bar {
+            position: relative;
+            height: 60px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            overflow: visible;
+            margin-bottom: 40px;
+        }
+
+        .timeline-segment {
+            position: absolute;
+            height: 100%;
+            display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        .stillstand-content {
-            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
             color: white;
+            transition: all 0.3s;
+            cursor: pointer;
         }
 
-        .stillstand-icon {
-            font-size: 120px;
-            margin-bottom: 30px;
-            animation: pulse 2s ease-in-out infinite;
+        .timeline-segment:hover {
+            filter: brightness(1.1);
+            z-index: 10;
         }
 
-        .stillstand-title {
-            font-size: 80px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 5px;
-            margin-bottom: 20px;
-            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        .timeline-segment.prüfung {
+            background: linear-gradient(135deg, #10b981, #059669);
         }
 
-        .stillstand-subtitle {
-            font-size: 32px;
-            font-weight: 600;
-            opacity: 0.9;
+        .timeline-segment.störung {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
         }
 
-        .stillstand-info {
-            margin-top: 40px;
-            padding: 20px 40px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 16px;
-            backdrop-filter: blur(10px);
+        .timeline-legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 16px;
+            justify-content: center;
         }
 
-        .stillstand-info p {
-            font-size: 20px;
-            font-weight: 600;
-            margin: 8px 0;
+        .timeline-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #64748b;
         }
 
+        .timeline-legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .timeline-legend-color.prüfung {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .timeline-legend-color.störung {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        /* Timeline Time Markers */
+        .timeline-markers {
+            position: relative;
+            height: 20px;
+            margin-top: 8px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 500;
+            transform: translateX(-50%);
+            top: 4px;
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+        }
+
+        .timeline-marker::before {
+            content: '';
+            position: absolute;
+            width: 1px;
+            height: 6px;
+            background: #cbd5e1;
+            top: -10px;
+            left: 50%;
+        }
+
+        /* Tooltip */
+        .timeline-tooltip {
+            position: absolute;
+            background: rgba(26, 32, 44, 0.95);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            pointer-events: none;
+            z-index: 1000;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+        }
+
+        .timeline-tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 4px solid rgba(26, 32, 44, 0.95);
+        }
+
+        /* Timeline Gap Warning */
+        .timeline-gap-warning {
+            position: absolute;
+            top: -30px;
+            transform: translateX(-50%);
+            font-size: 24px;
+            cursor: pointer;
+            animation: bounce 1s ease-in-out infinite;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            z-index: 100;
+        }
+
+        .timeline-gap-warning:hover {
+            transform: translateX(-50%) scale(1.2);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-5px); }
+        }
+
+        /* Stillstand Overlay - REMOVED */
+        
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -1190,23 +1299,11 @@
 
     <!-- Main Application -->
     <div id="mainApp" class="main-container hidden">
-        <!-- Simulation Button -->
-        <button class="simulation-btn" id="simulationBtn" onclick="toggleSimulation()" title="Stillstand simulieren">
-            <span id="simIcon">🔧</span>
+        <!-- Time Skip Button -->
+        <button class="timeskip-btn" onclick="skipTime()">
+            <span>⏭️</span>
+            <span>+10 Min</span>
         </button>
-
-        <!-- Stillstand Overlay -->
-        <div id="stillstandOverlay" class="stillstand-overlay hidden">
-            <div class="stillstand-content">
-                <div class="stillstand-icon">⚠️</div>
-                <div class="stillstand-title">STILLSTAND</div>
-                <div class="stillstand-subtitle">Maschine außer Betrieb</div>
-                <div class="stillstand-info" id="stillstandInfo">
-                    <p id="störungTyp">-</p>
-                    <p id="störungDauer">-</p>
-                </div>
-            </div>
-        </div>
 
         <div class="sidebar">
             <div class="user-profile">
@@ -1233,22 +1330,38 @@
 
                 <div class="machine-header-section">
                     <div class="machine-name">Maschine 01</div>
-                    <button class="status-toggle active" id="statusToggle" onclick="toggleStatus()">
-                        <span class="status-indicator"></span>
-                        <span id="statusText">In Betrieb</span>
-                    </button>
                 </div>
 
                 <div class="action-buttons-section">
-                    <button class="action-btn btn-complete" id="mainActionBtn" onclick="handleMainAction()">
+                    <button class="action-btn btn-complete" id="mainActionBtn" onclick="handleMainAction()" style="grid-column: 1 / -1;">
                         <span style="font-size: 2.5rem;">▶</span>
                         <span id="mainActionText">Prüfung starten</span>
                     </button>
-                    <button class="action-btn btn-störung" onclick="openStörungModal()">
-                        <span style="font-size: 2.5rem;">⚠️</span>
-                        <span>Störung melden</span>
-                    </button>
                 </div>
+
+                <!-- Timeline -->
+                <div class="timeline-container" style="grid-column: 1 / -1;">
+                    <div class="timeline-header">
+                            <div class="timeline-title">📊 Zeitstrahl</div>
+                            <div class="timeline-current-time" id="currentTime">--:--</div>
+                        </div>
+                        <div class="timeline-bar" id="timelineBar">
+                            <!-- Timeline segments will be rendered here -->
+                        </div>
+                        <div class="timeline-markers" id="timelineMarkers">
+                            <!-- Time markers will be rendered here -->
+                        </div>
+                        <div class="timeline-legend">
+                            <div class="timeline-legend-item">
+                                <div class="timeline-legend-color prüfung"></div>
+                                <span>Prüfung</span>
+                            </div>
+                            <div class="timeline-legend-item">
+                                <div class="timeline-legend-color störung"></div>
+                                <span>Störung</span>
+                            </div>
+                        </div>
+                    </div>
             </div>
         </div>
     </div>
@@ -1263,8 +1376,10 @@
             prüfungAktiv: false,
             currentTeilekarte: null,
             prüfungStartzeit: null,
-            stillstandSimulation: false,
-            currentStillstand: null
+            simulatedTime: new Date(), // Simulierte Zeit für Time-Skip
+            liveUpdateInterval: null,
+            lastPrüfungEndzeit: null, // Track when last prüfung ended
+            unaddressedGapStart: null // Track if there's an unaddressed gap
         };
 
         const availableParts = [
@@ -1310,6 +1425,7 @@
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.remove('hidden');
                 updateContentGlow();
+                updateTimeline();
                 loginValue = '';
                 updateLoginDisplay();
             }
@@ -1322,6 +1438,57 @@
                 content.classList.add('machine-active');
             } else {
                 content.classList.add('machine-inactive');
+            }
+        }
+
+        function updateIdleWarning() {
+            const content = document.querySelector('.content');
+            
+            // Check if there's an unaddressed gap that was ignored
+            if (state.unaddressedGapStart) {
+                const now = state.simulatedTime.getTime();
+                const gapDuration = (now - state.unaddressedGapStart) / 60000;
+                
+                // Strong red for ignored gaps, increasing with time
+                if (gapDuration < 15) {
+                    const intensity = Math.min(gapDuration / 15, 1);
+                    const alpha = 0.25 + (intensity * 0.15); // 0.25 to 0.4
+                    content.style.background = `rgba(239, 68, 68, ${alpha})`;
+                } else {
+                    // Maximum red after 15 minutes
+                    content.style.background = `rgba(239, 68, 68, 0.45)`;
+                }
+                return;
+            }
+            
+            // If prüfung is active and no unaddressed gap, remove warning
+            if (state.prüfungAktiv) {
+                content.style.removeProperty('background');
+                return;
+            }
+            
+            // Calculate idle time
+            const now = state.simulatedTime.getTime();
+            const lastActivity = state.lastPrüfungEndzeit ? state.lastPrüfungEndzeit.getTime() : null;
+            
+            if (!lastActivity) {
+                content.style.removeProperty('background');
+                return;
+            }
+            
+            const idleMinutes = (now - lastActivity) / 60000;
+            
+            if (idleMinutes < 5) {
+                // Normal - no warning
+                content.style.removeProperty('background');
+            } else if (idleMinutes < 15) {
+                // 5-15 min: light red, increasing intensity
+                const intensity = Math.min((idleMinutes - 5) / 10, 1); // 0 to 1 over 10 minutes
+                const alpha = 0.08 + (intensity * 0.17); // 0.08 to 0.25
+                content.style.background = `rgba(239, 68, 68, ${alpha})`;
+            } else {
+                // > 15 min: strong red
+                content.style.background = `rgba(239, 68, 68, 0.3)`;
             }
         }
 
@@ -1347,14 +1514,14 @@
             if (state.prüfungAktiv) {
                 icon.textContent = '✓';
                 text.textContent = 'Prüfung abschließen';
-                btn.classList.add('btn-complete');
-                btn.classList.remove('btn-start');
+                btn.className = 'action-btn btn-complete';
+                btn.style.gridColumn = '1 / -1';
                 if (partBtn) partBtn.disabled = true;
             } else {
                 icon.textContent = '▶';
                 text.textContent = 'Prüfung starten';
-                btn.classList.remove('btn-complete');
-                btn.classList.add('btn-start');
+                btn.className = 'action-btn btn-complete';
+                btn.style.gridColumn = '1 / -1';
                 if (partBtn) partBtn.disabled = false;
             }
         }
@@ -1578,11 +1745,23 @@
                                     </div>
                                 </div>
                             </div>
-                            <p style="text-align: center; color: #64748b; font-size: 16px;">Bitte überprüfen Sie die Daten und bestätigen Sie.</p>
+                            <p style="text-align: center; color: #64748b; font-size: 16px;">Bitte wählen Sie den Prüfzyklus:</p>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                                <div class="störung-option" id="zyklus-1" onclick="selectPrüfzyklus(this, 1)" style="padding: 20px; text-align: center;">
+                                    <h3 style="font-size: 18px; margin: 0;">Prüfzyklus 1</h3>
+                                </div>
+                                <div class="störung-option" id="zyklus-2" onclick="selectPrüfzyklus(this, 2)" style="padding: 20px; text-align: center;">
+                                    <h3 style="font-size: 18px; margin: 0;">Prüfzyklus 2</h3>
+                                </div>
+                                <div class="störung-option" id="zyklus-3" onclick="selectPrüfzyklus(this, 3)" style="padding: 20px; text-align: center;">
+                                    <h3 style="font-size: 18px; margin: 0;">Prüfzyklus 3</h3>
+                                </div>
+                            </div>
                         </div>
                         <div class="modal-buttons">
                             <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
-                            <button class="btn-primary" onclick="startPrüfung('${teilekartenNr}', '${chargeNr}', '${laufkartenNr}', '${teil}')">Bestätigen & Starten</button>
+                            <button class="btn-primary" id="confirmPrüfzyklusBtn" onclick="confirmPrüfzyklus('${teilekartenNr}', '${chargeNr}', '${laufkartenNr}', '${teil}')" disabled style="opacity: 0.5;">Bestätigen & Starten</button>
                         </div>
                     </div>
                 </div>
@@ -1590,23 +1769,34 @@
             document.body.appendChild(modal);
         }
 
-        function startPrüfung(teilekartenNr, chargeNr, laufkartenNr, teil) {
+        function startPrüfung(teilekartenNr, chargeNr, laufkartenNr, teil, prüfzyklus) {
             state.prüfungAktiv = true;
-            state.prüfungStartzeit = new Date();
+            state.prüfungStartzeit = new Date(state.simulatedTime);
             state.currentTeilekarte = {
                 teilekartenNr: teilekartenNr,
                 chargeNr: chargeNr,
                 laufkartenNr: laufkartenNr,
-                teil: teil
+                teil: teil,
+                prüfzyklus: prüfzyklus
             };
             state.currentPart = teil;
+            
+            // Start live update for timeline
+            if (state.liveUpdateInterval) {
+                clearInterval(state.liveUpdateInterval);
+            }
+            state.liveUpdateInterval = setInterval(() => {
+                updateTimeline();
+            }, 1000);
             
             // Update UI
             updatePartSection();
             updateMainButton();
+            updateTimeline();
+            updateIdleWarning();
             
             closeModal();
-            showSuccess(`Prüfung gestartet für ${teil}`);
+            showSuccess(`Prüfung gestartet für ${teil} (Prüfzyklus ${prüfzyklus})`);
         }
 
         function updatePartSection() {
@@ -1626,6 +1816,10 @@
                 <div class="part-info-row">
                     <span class="part-info-label">Teil</span>
                     <span class="part-info-value highlight">${tk.teil}</span>
+                </div>
+                <div class="part-info-row">
+                    <span class="part-info-label">Prüfzyklus</span>
+                    <span class="part-info-value highlight">${tk.prüfzyklus}</span>
                 </div>
                 <div class="part-info-row">
                     <span class="part-info-label">TBK-Nr.</span>
@@ -1875,7 +2069,7 @@
             const ioCount = parseInt(inputValues.io) || 0;
             const nioCount = parseInt(inputValues.nio) || 0;
             
-            const now = new Date();
+            const now = new Date(state.simulatedTime);
             const startzeit = state.prüfungStartzeit ? state.prüfungStartzeit.toLocaleString('de-DE', {
                 day: '2-digit',
                 month: '2-digit',
@@ -1894,13 +2088,24 @@
                 second: '2-digit'
             });
 
+            // For Prüfzyklus 2 and 3, set TBK-Nr to null
+            const tbkNr = state.currentTeilekarte.prüfzyklus === 1 
+                ? state.currentTeilekarte.teilekartenNr 
+                : null;
+
             const prüfung = {
                 id: Date.now(),
-                startzeit: startzeit,
-                endzeit: endzeit,
+                startzeit: state.prüfungStartzeit,
+                endzeit: now,
+                startzeitFormatted: startzeit,
+                endzeitFormatted: endzeit,
                 prüfnummer: state.prüfnummer,
                 part: state.currentPart,
-                teilekarte: state.currentTeilekarte,
+                prüfzyklus: state.currentTeilekarte.prüfzyklus,
+                teilekarte: {
+                    ...state.currentTeilekarte,
+                    teilekartenNr: tbkNr
+                },
                 io: ioCount,
                 nio: nioCount,
                 total: ioCount + nioCount,
@@ -1910,39 +2115,38 @@
             state.prüfungen.push(prüfung);
             console.log('Prüfung gespeichert:', prüfung);
             
+            // Update last prüfung end time
+            state.lastPrüfungEndzeit = now;
+            
+            // Stop live update
+            if (state.liveUpdateInterval) {
+                clearInterval(state.liveUpdateInterval);
+                state.liveUpdateInterval = null;
+            }
+            
             // Reset Prüfung
             state.prüfungAktiv = false;
             state.currentTeilekarte = null;
             state.prüfungStartzeit = null;
             updateMainButton();
             updatePartSection();
+            updateTimeline();
+            updateIdleWarning();
             
             closeModal();
             showSuccess(`Prüfung gespeichert: ${ioCount} i.O. / ${nioCount} n.i.O.`);
         }
 
         function openStörungModal() {
-            const isSimulation = state.stillstandSimulation;
-            const modalTitle = isSimulation ? 'Stillstand melden' : 'Störung melden';
-            
             const modal = document.createElement('div');
             modal.className = 'modal';
             modal.id = 'störungModal';
             modal.onclick = (e) => { if (e.target === modal) closeModal(); };
 
-            // Kein Schieberegler mehr bei Simulation
-            const durationSection = (!isSimulation) ? `
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 10px;">Dauer in Minuten:</label>
-                    <input type="range" class="timeline-slider" id="störungDuration" min="1" max="120" value="30" oninput="updateDuration()">
-                    <div class="timeline-value" id="durationDisplay">30 min</div>
-                </div>
-            ` : '';
-
             modal.innerHTML = `
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2>⚠️ ${modalTitle}</h2>
+                        <h2>⚠️ Störung melden</h2>
                     </div>
                     <div class="modal-body">
                         <div class="störung-options">
@@ -1994,7 +2198,11 @@
                                    onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
                         </div>
 
-                        ${durationSection}
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 10px;">Dauer in Minuten:</label>
+                            <input type="range" class="timeline-slider" id="störungDuration" min="1" max="120" value="30" oninput="updateDuration()">
+                            <div class="timeline-value" id="durationDisplay">30 min</div>
+                        </div>
                         
                         <div class="modal-buttons">
                             <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
@@ -2007,6 +2215,30 @@
         }
 
         let selectedStörung = null;
+        let selectedPrüfzyklus = null;
+
+        function selectPrüfzyklus(el, zyklus) {
+            document.querySelectorAll('#zyklus-1, #zyklus-2, #zyklus-3').forEach(e => e.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedPrüfzyklus = zyklus;
+            
+            // Enable confirm button
+            const confirmBtn = document.getElementById('confirmPrüfzyklusBtn');
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.style.opacity = '1';
+            }
+        }
+
+        function confirmPrüfzyklus(teilekartenNr, chargeNr, laufkartenNr, teil) {
+            if (!selectedPrüfzyklus) {
+                alert('Bitte wählen Sie einen Prüfzyklus aus!');
+                return;
+            }
+            startPrüfung(teilekartenNr, chargeNr, laufkartenNr, teil, selectedPrüfzyklus);
+            selectedPrüfzyklus = null;
+        }
+
         function selectStörung(el, type) {
             document.querySelectorAll('.störung-option').forEach(e => e.classList.remove('selected'));
             el.classList.add('selected');
@@ -2047,18 +2279,377 @@
                 störungText = 'Sonstiges: ' + customText;
             }
             
-            const isSimulation = state.stillstandSimulation;
-            let duration;
+            const duration = parseInt(document.getElementById('störungDuration').value);
             
-            if (isSimulation) {
-                // For simulation, duration is calculated when ending
-                duration = null;
-            } else {
-                duration = parseInt(document.getElementById('störungDuration').value);
+            const now = new Date(state.simulatedTime);
+            const timestamp = now.toLocaleString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            // Störung geht rückwärts: endTime = jetzt, startTime = jetzt - duration
+            const störung = {
+                id: Date.now(),
+                timestamp: timestamp,
+                startTime: new Date(now.getTime() - duration * 60000),
+                endTime: new Date(now),
+                prüfnummer: state.prüfnummer,
+                type: störungText,
+                duration: duration,
+                störungType: 'störung'
+            };
+            state.störungen.push(störung);
+            console.log('Störung gespeichert:', störung);
+            
+            closeModal();
+            selectedStörung = null;
+            updateTimeline();
+            showSuccess(`Störung gemeldet: ${störungText} (${duration} Min)`);
+        }
+
+        // Time Skip Function
+        function skipTime() {
+            // Skip 10 minutes
+            state.simulatedTime = new Date(state.simulatedTime.getTime() + 10 * 60000);
+            updateTimeline();
+            showSuccess(`Zeit vorgesprungen: +10 Minuten (${state.simulatedTime.toLocaleTimeString('de-DE')})`);
+            console.log('Simulierte Zeit:', state.simulatedTime);
+        }
+
+        // Timeline Functions
+        function updateTimeline() {
+            // Update current time display
+            const currentTimeEl = document.getElementById('currentTime');
+            if (currentTimeEl) {
+                currentTimeEl.textContent = state.simulatedTime.toLocaleTimeString('de-DE', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+
+            const timelineBar = document.getElementById('timelineBar');
+            const timelineMarkers = document.getElementById('timelineMarkers');
+            if (!timelineBar) return;
+
+            // Clear existing segments and markers
+            timelineBar.innerHTML = '';
+            if (timelineMarkers) timelineMarkers.innerHTML = '';
+
+            // Calculate timeline window (last 2 hours)
+            const now = state.simulatedTime.getTime();
+            const twoHoursAgo = now - (2 * 60 * 60 * 1000);
+
+            // Add time markers every 15 minutes
+            if (timelineMarkers) {
+                for (let i = 0; i <= 8; i++) {
+                    const timeOffset = i * 15 * 60 * 1000;
+                    const markerTime = new Date(twoHoursAgo + timeOffset);
+                    const marker = document.createElement('div');
+                    marker.className = 'timeline-marker';
+                    marker.style.left = `${(i / 8) * 100}%`;
+                    marker.textContent = markerTime.toLocaleTimeString('de-DE', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    timelineMarkers.appendChild(marker);
+                }
+            }
+
+            // Collect all events (prüfungen and störungen)
+            const events = [];
+
+            // Add prüfungen (including active one)
+            state.prüfungen.forEach(prüfung => {
+                const start = prüfung.startzeit ? new Date(prüfung.startzeit).getTime() : null;
+                const end = prüfung.endzeit ? new Date(prüfung.endzeit).getTime() : null;
+                if (start && end && end > twoHoursAgo && start < now) {
+                    events.push({
+                        type: 'prüfung',
+                        start: Math.max(start, twoHoursAgo),
+                        end: Math.min(end, now),
+                        data: prüfung
+                    });
+                }
+            });
+
+            // Add active prüfung (live)
+            if (state.prüfungAktiv && state.prüfungStartzeit) {
+                const start = new Date(state.prüfungStartzeit).getTime();
+                const end = now;
+                if (end > twoHoursAgo && start < now) {
+                    events.push({
+                        type: 'prüfung',
+                        start: Math.max(start, twoHoursAgo),
+                        end: Math.min(end, now),
+                        data: {
+                            io: 0,
+                            nio: 0,
+                            total: 0,
+                            isLive: true
+                        }
+                    });
+                }
+            }
+
+            // Add störungen - FIX: jetzt werden sie korrekt hinzugefügt
+            state.störungen.forEach(störung => {
+                const start = störung.startTime ? new Date(störung.startTime).getTime() : null;
+                const end = störung.endTime ? new Date(störung.endTime).getTime() : null;
+                
+                if (start && end) {
+                    if (end > twoHoursAgo && start < now) {
+                        events.push({
+                            type: 'störung',
+                            start: Math.max(start, twoHoursAgo),
+                            end: Math.min(end, now),
+                            data: störung
+                        });
+                    }
+                }
+            });
+
+            // Sort events by start time
+            events.sort((a, b) => a.start - b.start);
+
+            // Detect gaps > 5 minutes between events
+            const gaps = [];
+            const prüfungEvents = events.filter(e => e.type === 'prüfung');
+            
+            // Check gaps between completed prüfungen
+            for (let i = 0; i < prüfungEvents.length - 1; i++) {
+                const currentEnd = prüfungEvents[i].end;
+                const nextStart = prüfungEvents[i + 1].start;
+                const gapDuration = nextStart - currentEnd;
+                
+                // Check if there's already a störung covering this gap
+                const hasStörung = events.some(e => 
+                    e.type === 'störung' && 
+                    e.start <= currentEnd && 
+                    e.end >= nextStart
+                );
+                
+                if (gapDuration > 5 * 60 * 1000 && !hasStörung) {
+                    gaps.push({
+                        start: currentEnd,
+                        end: nextStart,
+                        duration: gapDuration
+                    });
+                }
             }
             
-            const now = new Date();
-            const timestamp = now.toLocaleString('de-DE', {
+            // Check if there's a current gap (no active prüfung and last one ended > 5 min ago)
+            if (!state.prüfungAktiv && state.lastPrüfungEndzeit) {
+                const lastEnd = state.lastPrüfungEndzeit.getTime();
+                const currentGapDuration = now - lastEnd;
+                
+                // Check if there's a störung covering this current gap
+                const hasStörung = events.some(e => 
+                    e.type === 'störung' && 
+                    e.start <= lastEnd && 
+                    e.end >= now
+                );
+                
+                if (currentGapDuration > 5 * 60 * 1000 && !hasStörung) {
+                    gaps.push({
+                        start: lastEnd,
+                        end: now,
+                        duration: currentGapDuration,
+                        isCurrent: true
+                    });
+                    
+                    // Mark this as an unaddressed gap if not already marked
+                    if (!state.unaddressedGapStart) {
+                        state.unaddressedGapStart = lastEnd;
+                    }
+                }
+            }
+            
+            console.log('Gaps detected:', gaps.length, gaps);
+            console.log('Unaddressed gap start:', state.unaddressedGapStart);
+            
+            // Update idle warning
+            updateIdleWarning();
+
+            // Render segments
+            const timelineWidth = 2 * 60 * 60 * 1000; // 2 hours in ms
+            events.forEach(event => {
+                const segment = document.createElement('div');
+                segment.className = `timeline-segment ${event.type}`;
+                
+                const startPercent = ((event.start - twoHoursAgo) / timelineWidth) * 100;
+                const widthPercent = ((event.end - event.start) / timelineWidth) * 100;
+                
+                segment.style.left = `${startPercent}%`;
+                segment.style.width = `${widthPercent}%`;
+                
+                // Add better tooltip with hover
+                const startTime = new Date(event.start).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+                const endTime = new Date(event.end).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+                const duration = Math.round((event.end - event.start) / 60000);
+                
+                let tooltipText = '';
+                if (event.type === 'prüfung') {
+                    if (event.data.isLive) {
+                        tooltipText = `Prüfung läuft...\n${startTime} - ${endTime} (${duration} Min)`;
+                        segment.textContent = widthPercent > 8 ? '⏱️' : '';
+                        segment.style.opacity = '0.8';
+                    } else {
+                        tooltipText = `Prüfung\n${startTime} - ${endTime} (${duration} Min)\nGefertigt: ${event.data.total} Teile (${event.data.io} i.O. / ${event.data.nio} n.i.O.)`;
+                        segment.textContent = widthPercent > 8 ? `${event.data.total}` : '';
+                    }
+                } else {
+                    tooltipText = `Störung\n${startTime} - ${endTime} (${duration} Min)\n${event.data.type}`;
+                    segment.textContent = widthPercent > 8 ? `⚠️` : '';
+                }
+                
+                segment.title = tooltipText;
+                
+                // Add custom hover tooltip
+                segment.addEventListener('mouseenter', (e) => {
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'timeline-tooltip';
+                    tooltip.id = 'customTooltip';
+                    tooltip.innerHTML = tooltipText.replace(/\n/g, '<br>');
+                    document.body.appendChild(tooltip);
+                    
+                    const rect = segment.getBoundingClientRect();
+                    tooltip.style.left = `${rect.left + rect.width / 2}px`;
+                    tooltip.style.top = `${rect.top - 10}px`;
+                    tooltip.style.transform = 'translate(-50%, -100%)';
+                });
+                
+                segment.addEventListener('mouseleave', () => {
+                    const tooltip = document.getElementById('customTooltip');
+                    if (tooltip) tooltip.remove();
+                });
+                
+                timelineBar.appendChild(segment);
+            });
+
+            // Render gap warnings
+            gaps.forEach((gap, index) => {
+                const gapCenter = (gap.start + gap.end) / 2;
+                const centerPercent = ((gapCenter - twoHoursAgo) / timelineWidth) * 100;
+                
+                console.log(`Gap ${index}: centerPercent=${centerPercent}%`);
+                
+                if (centerPercent >= 0 && centerPercent <= 100) {
+                    const warning = document.createElement('div');
+                    warning.className = 'timeline-gap-warning';
+                    warning.style.left = `${centerPercent}%`;
+                    warning.style.position = 'absolute';
+                    warning.textContent = '⚠️';
+                    warning.title = 'Klicken um Störung zu melden';
+                    warning.onclick = (e) => {
+                        e.stopPropagation();
+                        openStörungModalForGap(gap);
+                    };
+                    timelineBar.appendChild(warning);
+                    console.log('Warning added to timeline:', warning);
+                }
+            });
+        }
+
+        function openStörungModalForGap(gap) {
+            // Calculate duration in minutes
+            const durationMinutes = Math.round((gap.end - gap.start) / 60000);
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'störungModal';
+            modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>⚠️ Störung melden</h2>
+                    </div>
+                    <div class="modal-body">
+                        <p style="text-align: center; margin-bottom: 20px; color: #64748b;">
+                            Automatische Erkennung: Pause von <strong>${durationMinutes} Minuten</strong> erkannt
+                        </p>
+                        <div class="störung-options">
+                            <div class="störung-option" onclick="selectStörung(this, 'Kalibrierung fehlgeschlagen')">
+                                <h3>🔧 Kalibrierung fehlgeschlagen</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'NIO voll')">
+                                <h3>📦 NIO voll</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Teile Zuführung')">
+                                <h3>⬇️ Teile Zuführung</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Reperatur')">
+                                <h3>🔨 Reperatur</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Rabbit Prüfung')">
+                                <h3>🐰 Rabbit Prüfung</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Keine Rohlinge')">
+                                <h3>❌ Keine Rohlinge</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Teile Abführung')">
+                                <h3>⬆️ Teile Abführung</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Dokumentation')">
+                                <h3>📄 Dokumentation</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Monteur Einsatz')">
+                                <h3>👷 Monteur Einsatz</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Ablauffehler')">
+                                <h3>⚠️ Ablauffehler</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Aushilfe andere Anlage')">
+                                <h3>🔄 Aushilfe andere Anlage</h3>
+                            </div>
+                            <div class="störung-option" onclick="selectStörung(this, 'Sonstiges')">
+                                <h3>📝 Sonstiges</h3>
+                            </div>
+                        </div>
+                        
+                        <div id="sonstigesInput" class="hidden" style="margin-bottom: 20px;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 10px;">Bitte beschreiben Sie die Störung:</label>
+                            <input type="text" 
+                                   id="sonstigesText" 
+                                   placeholder="Störungsgrund eingeben"
+                                   style="width: 100%; padding: 16px 20px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 12px; transition: all 0.2s ease;"
+                                   onfocus="this.style.borderColor='#2a5298'; this.style.boxShadow='0 0 0 3px rgba(42, 82, 152, 0.1)';"
+                                   onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                        </div>
+                        
+                        <div class="modal-buttons">
+                            <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+                            <button class="btn-primary" onclick="saveStörungForGap(${gap.start}, ${gap.end})">Bestätigen</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function saveStörungForGap(gapStart, gapEnd) {
+            if (!selectedStörung) {
+                alert('Bitte wählen Sie eine Störung aus!');
+                return;
+            }
+            
+            let störungText = selectedStörung;
+            
+            if (selectedStörung === 'Sonstiges') {
+                const customText = document.getElementById('sonstigesText').value.trim();
+                if (!customText) {
+                    alert('Bitte beschreiben Sie die Störung!');
+                    return;
+                }
+                störungText = 'Sonstiges: ' + customText;
+            }
+            
+            const duration = Math.round((gapEnd - gapStart) / 60000);
+            const startDate = new Date(gapStart);
+            const timestamp = startDate.toLocaleString('de-DE', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric',
@@ -2069,101 +2660,31 @@
             const störung = {
                 id: Date.now(),
                 timestamp: timestamp,
-                startTime: isSimulation ? now : null,
-                endTime: null,
+                startTime: new Date(gapStart),
+                endTime: new Date(gapEnd),
                 prüfnummer: state.prüfnummer,
                 type: störungText,
                 duration: duration,
-                isSimulation: isSimulation,
                 störungType: 'störung'
             };
             state.störungen.push(störung);
-            console.log('Störung gespeichert:', störung);
+            console.log('Störung für Gap gespeichert:', störung);
+            
+            // Clear unaddressed gap since it's now addressed
+            state.unaddressedGapStart = null;
             
             closeModal();
             selectedStörung = null;
-            
-            // If simulation mode, activate stillstand overlay
-            if (isSimulation) {
-                state.currentStillstand = störung;
-                showStillstandOverlay();
-            } else {
-                showSuccess(`Störung gemeldet: ${störungText} (${duration} Min)`);
-            }
+            updateTimeline();
+            updateIdleWarning();
+            showSuccess(`Störung erfasst: ${störungText} (${duration} Min)`);
         }
 
-        // Simulation Mode Functions
-        function toggleSimulation() {
-            state.stillstandSimulation = !state.stillstandSimulation;
-            const btn = document.getElementById('simulationBtn');
-            const icon = document.getElementById('simIcon');
-            
-            if (state.stillstandSimulation) {
-                btn.classList.add('active');
-                icon.textContent = '⚠️';
-                
-                // Open Störung Modal immediately
-                openStörungModal();
-            } else {
-                btn.classList.remove('active');
-                icon.textContent = '🔧';
-                
-                // Calculate duration and update störung
-                if (state.currentStillstand) {
-                    const endTime = new Date();
-                    const durationMs = endTime - state.currentStillstand.startTime;
-                    const durationMin = Math.round(durationMs / 60000);
-                    
-                    // Update the störung entry
-                    const störung = state.störungen.find(s => s.id === state.currentStillstand.id);
-                    if (störung) {
-                        störung.endTime = endTime;
-                        störung.duration = durationMin;
-                    }
-                    
-                    showSuccess(`Stillstand beendet: ${durationMin} Minuten`);
-                }
-                
-                // Hide stillstand overlay
-                hideStillstandOverlay();
-                state.currentStillstand = null;
-            }
-        }
-
-        function showStillstandOverlay() {
-            const overlay = document.getElementById('stillstandOverlay');
-            overlay.classList.remove('hidden');
-            
-            if (state.currentStillstand) {
-                document.getElementById('störungTyp').textContent = `Grund: ${state.currentStillstand.type}`;
-                // Timer anzeigen
-                updateStillstandTimer();
-                if (!window.stillstandTimerInterval) {
-                    window.stillstandTimerInterval = setInterval(updateStillstandTimer, 1000);
-                }
-            }
-        }
-
-        function updateStillstandTimer() {
-            if (!state.currentStillstand || !state.currentStillstand.startTime) return;
-            const start = new Date(state.currentStillstand.startTime);
-            const now = new Date();
-            let diff = Math.floor((now - start) / 1000);
-            const h = Math.floor(diff / 3600).toString().padStart(2, '0');
-            diff = diff % 3600;
-            const m = Math.floor(diff / 60).toString().padStart(2, '0');
-            const s = (diff % 60).toString().padStart(2, '0');
-            document.getElementById('störungDauer').textContent = `Dauer: ${h}:${m}:${s}`;
-        }
-
-        function hideStillstandOverlay() {
-            const overlay = document.getElementById('stillstandOverlay');
-            overlay.classList.add('hidden');
-            if (window.stillstandTimerInterval) {
-                clearInterval(window.stillstandTimerInterval);
-                window.stillstandTimerInterval = null;
-            }
-        }
+        // Update timeline and idle warning periodically
+        setInterval(() => {
+            updateTimeline();
+            updateIdleWarning();
+        }, 1000);
 
         function openDatabase() {
             const modal = document.createElement('div');
@@ -2183,12 +2704,14 @@
                 `;
             } else {
                 const rows = prüfungen.map(entry => {
-                    const tbkNr = entry.teilekarte ? entry.teilekarte.teilekartenNr : '-';
+                    const tbkNr = entry.teilekarte && entry.teilekarte.teilekartenNr ? entry.teilekarte.teilekartenNr : '-';
+                    const prüfzyklus = entry.prüfzyklus || '-';
                     return `
                         <tr>
-                            <td>${entry.startzeit || '-'}</td>
-                            <td>${entry.endzeit || '-'}</td>
+                            <td>${entry.startzeitFormatted || '-'}</td>
+                            <td>${entry.endzeitFormatted || '-'}</td>
                             <td>${entry.prüfnummer}</td>
+                            <td>${prüfzyklus}</td>
                             <td>${tbkNr}</td>
                             <td>${entry.part}</td>
                             <td><span class="data-badge io">${entry.io} i.O.</span></td>
@@ -2205,6 +2728,7 @@
                                 <th>Start</th>
                                 <th>Ende</th>
                                 <th>Prüfer</th>
+                                <th>Zyklus</th>
                                 <th>TBK-Nr.</th>
                                 <th>Teil</th>
                                 <th>i.O.</th>
@@ -2251,7 +2775,7 @@
                 `;
             } else {
                 const rows = störungen.map(entry => {
-                    const durationText = entry.duration !== null ? `${entry.duration} Min` : 'Läuft...';
+                    const durationText = entry.duration !== null ? `${entry.duration} Min` : '-';
                     return `
                         <tr>
                             <td>${entry.timestamp}</td>
