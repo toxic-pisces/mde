@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Maschinen Prüfsystem</title>
     
     <!-- PWA Manifest -->
@@ -1136,20 +1136,19 @@
     <script>
         let state = {
             prüfnummer: '',
-            currentPart: 'Housing A',
+            currentPart: 'Housing',
             machineActive: true,
             prüfungen: [],
             störungen: [],
             prüfungAktiv: false,
-            currentTeilekarte: null
+            currentTeilekarte: null,
+            prüfungStartzeit: null
         };
 
         const availableParts = [
-            'Housing A',
-            'Housing B',
-            'Deckel XL',
-            'Gehäuse Pro',
-            'Basis Modul'
+            'Housing',
+            'Bremskolben',
+            'Ventil'
         ];
 
         let loginValue = '';
@@ -1471,6 +1470,7 @@
 
         function startPrüfung(teilekartenNr, chargeNr, laufkartenNr, teil) {
             state.prüfungAktiv = true;
+            state.prüfungStartzeit = new Date();
             state.currentTeilekarte = {
                 teilekartenNr: teilekartenNr,
                 chargeNr: chargeNr,
@@ -1645,17 +1645,28 @@
             const nioCount = parseInt(inputValues.nio) || 0;
             
             const now = new Date();
-            const timestamp = now.toLocaleString('de-DE', {
+            const startzeit = state.prüfungStartzeit ? state.prüfungStartzeit.toLocaleString('de-DE', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric',
                 hour: '2-digit',
-                minute: '2-digit'
+                minute: '2-digit',
+                second: '2-digit'
+            }) : '-';
+            
+            const endzeit = now.toLocaleString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
             });
 
             const prüfung = {
                 id: Date.now(),
-                timestamp: timestamp,
+                startzeit: startzeit,
+                endzeit: endzeit,
                 prüfnummer: state.prüfnummer,
                 part: state.currentPart,
                 teilekarte: state.currentTeilekarte,
@@ -1670,6 +1681,7 @@
             // Reset Prüfung
             state.prüfungAktiv = false;
             state.currentTeilekarte = null;
+            state.prüfungStartzeit = null;
             updateMainButton();
             updatePartSection();
             
@@ -1780,25 +1792,30 @@
             } else {
                 const rows = allEntries.map(entry => {
                     if (entry.entryType === 'prüfung') {
+                        const tbkNr = entry.teilekarte ? entry.teilekarte.teilekartenNr : '-';
                         return `
                             <tr>
-                                <td>${entry.timestamp}</td>
+                                <td>${entry.startzeit || '-'}</td>
+                                <td>${entry.endzeit || '-'}</td>
                                 <td><span class="data-badge io">Prüfung</span></td>
                                 <td>${entry.prüfnummer}</td>
+                                <td>${tbkNr}</td>
                                 <td>${entry.part}</td>
                                 <td><span class="data-badge io">${entry.io} i.O.</span></td>
                                 <td><span class="data-badge nio">${entry.nio} n.i.O.</span></td>
-                                <td>${entry.total} Teile</td>
+                                <td>${entry.total}</td>
                             </tr>
                         `;
                     } else {
                         return `
                             <tr>
                                 <td>${entry.timestamp}</td>
+                                <td>-</td>
                                 <td><span class="data-badge störung">Störung</span></td>
                                 <td>${entry.prüfnummer}</td>
+                                <td>-</td>
                                 <td>${entry.type}</td>
-                                <td colspan="2">${entry.duration} Minuten</td>
+                                <td colspan="2">${entry.duration} Min</td>
                                 <td>-</td>
                             </tr>
                         `;
@@ -1809,10 +1826,12 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Zeitstempel</th>
+                                <th>Start</th>
+                                <th>Ende</th>
                                 <th>Typ</th>
                                 <th>Prüfer</th>
-                                <th>Details</th>
+                                <th>TBK-Nr.</th>
+                                <th>Teil</th>
                                 <th>i.O.</th>
                                 <th>n.i.O.</th>
                                 <th>Gesamt</th>
