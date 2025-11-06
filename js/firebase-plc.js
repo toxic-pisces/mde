@@ -123,6 +123,21 @@ const FirebasePLC = {
 
     // Aktion basierend auf Status ausführen
     executeAction: function(status) {
+        // Prüfe ob mdeState existiert
+        if (!window.mdeState) {
+            console.error('✗ window.mdeState ist nicht initialisiert! Warte 2 Sekunden...');
+            // Versuche nochmal nach 2 Sekunden
+            setTimeout(() => {
+                if (window.mdeState) {
+                    console.log('✓ mdeState jetzt verfügbar, führe Aktion aus...');
+                    this.executeAction(status);
+                } else {
+                    console.error('✗ mdeState immer noch nicht verfügbar. App nicht geladen?');
+                }
+            }, 2000);
+            return;
+        }
+
         const state = window.mdeState;
 
         switch(status) {
@@ -151,6 +166,11 @@ const FirebasePLC = {
     triggerMalfunction: function() {
         console.log('🔴 Störung wird ausgelöst...');
         this.showNotification('PLC: Störung erkannt (-10)', 'error');
+
+        if (!window.mdeState) {
+            console.error('✗ window.mdeState nicht verfügbar');
+            return;
+        }
 
         const state = window.mdeState;
 
@@ -189,6 +209,11 @@ const FirebasePLC = {
         console.log('🟢 Betriebsbereit-Modus wird aktiviert...');
         this.showNotification('PLC: Betriebsbereit (10)', 'success');
 
+        if (!window.mdeState) {
+            console.error('✗ window.mdeState nicht verfügbar');
+            return;
+        }
+
         const state = window.mdeState;
 
         // Setze Status auf idle
@@ -226,6 +251,11 @@ const FirebasePLC = {
     triggerStartTest: function() {
         console.log('🟡 Test wird gestartet (simuliert "Prüfung starten" Button)...');
         this.showNotification('PLC: Test starten (20)', 'info');
+
+        if (!window.mdeState) {
+            console.error('✗ window.mdeState nicht verfügbar');
+            return;
+        }
 
         const state = window.mdeState;
 
@@ -287,6 +317,11 @@ const FirebasePLC = {
     triggerShutdown: function() {
         console.log('⚫ System wird heruntergefahren...');
         this.showNotification('PLC: System heruntergefahren (0)', 'warning');
+
+        if (!window.mdeState) {
+            console.error('✗ window.mdeState nicht verfügbar');
+            return;
+        }
 
         const state = window.mdeState;
 
