@@ -174,10 +174,18 @@ const FirebasePLC = {
 
         const state = window.mdeState;
 
-        // Wenn eine Prüfung läuft, beende sie
+        // Wenn eine Prüfung läuft, öffne erst das Summary Modal
         if (state.prüfungAktiv) {
-            console.log('   ℹ Laufende Prüfung wird abgebrochen');
-            state.prüfungAktiv = false;
+            console.log('   ℹ Laufende Prüfung wird beendet - öffne Summary Modal');
+
+            const zyklus = state.currentZyklus || 1;
+
+            // Öffne Prüfung Summary Modal
+            if (typeof PrüfungSummary !== 'undefined' && PrüfungSummary.open) {
+                setTimeout(() => {
+                    PrüfungSummary.open(zyklus);
+                }, 300);
+            }
         }
 
         // Setze Maschinenstatus auf Störung
@@ -215,6 +223,20 @@ const FirebasePLC = {
         }
 
         const state = window.mdeState;
+
+        // Wenn eine Prüfung läuft, öffne erst das Summary Modal
+        if (state.prüfungAktiv) {
+            console.log('   ℹ Laufende Prüfung wird beendet - öffne Summary Modal');
+
+            const zyklus = state.currentZyklus || 1;
+
+            // Öffne Prüfung Summary Modal
+            if (typeof PrüfungSummary !== 'undefined' && PrüfungSummary.open) {
+                setTimeout(() => {
+                    PrüfungSummary.open(zyklus);
+                }, 300);
+            }
+        }
 
         // Setze Status auf idle
         console.log('   ✅ Setze Maschinenstatus auf IDLE (bereit)');
