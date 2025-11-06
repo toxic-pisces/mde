@@ -5,6 +5,24 @@ const AutoMode = {
     handleAction: function() {
         const state = window.mdeState.machineState;
 
+        // Update Firebase status when button is clicked
+        if (window.FirebasePLC && window.FirebasePLC.isConnected) {
+            if (state === 'idle') {
+                // Prüfung starten -> Status 20 (Produktiv)
+                window.FirebasePLC.setStatus(20, true);
+                console.log('📤 Firebase Status auf 20 gesetzt (Prüfung starten)');
+            } else if (state === 'störung') {
+                // Störung behoben -> Status 10 (Betriebsbereit)
+                window.FirebasePLC.setStatus(10, true);
+                console.log('📤 Firebase Status auf 10 gesetzt (Betriebsbereit)');
+            } else if (state === 'stillstand') {
+                // Stillstand beenden -> Status 10 (Betriebsbereit)
+                window.FirebasePLC.setStatus(10, true);
+                console.log('📤 Firebase Status auf 10 gesetzt (Betriebsbereit)');
+            }
+        }
+
+        // Führe die normale Aktion aus
         if (state === 'idle') {
             this.startPrüfungZyklus1();
         } else if (state === 'prüfung_zyklus1') {

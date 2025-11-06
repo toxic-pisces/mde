@@ -5,6 +5,7 @@ const FirebasePLC = {
     isConnected: false,
     statusRef: null,
     lastStatus: null,
+    isLocalUpdate: false,  // Flag to prevent double execution
 
     // Status-Codes
     STATUS_CODES: {
@@ -93,7 +94,14 @@ const FirebasePLC = {
         const statusDesc = this.getStatusDescription(newStatus);
         console.log(`   Bedeutung: ${statusDesc}`);
 
-        // Entsprechende Aktion ausführen
+        // Wenn das Update lokal ausgelöst wurde, nur Firebase aktualisieren, aber keine Aktion ausführen
+        if (this.isLocalUpdate) {
+            console.log('   ℹ Lokale Änderung - keine Aktion wird ausgeführt');
+            this.isLocalUpdate = false;
+            return;
+        }
+
+        // Entsprechende Aktion ausführen (nur bei externen Änderungen)
         this.executeAction(newStatus);
     },
 
@@ -286,10 +294,15 @@ const FirebasePLC = {
     },
 
     // Status in Firebase setzen (für manuelle Tests)
-    setStatus: function(statusCode) {
+    setStatus: function(statusCode, fromLocalAction = false) {
         if (!this.statusRef) {
             console.error('✗ Firebase PLC ist nicht initialisiert');
             return false;
+        }
+
+        // Setze Flag wenn von lokaler Aktion (Button) ausgelöst
+        if (fromLocalAction) {
+            this.isLocalUpdate = true;
         }
 
         this.statusRef.set(statusCode)
@@ -298,6 +311,7 @@ const FirebasePLC = {
             })
             .catch((error) => {
                 console.error('✗ Fehler beim Setzen des Status:', error);
+                this.isLocalUpdate = false;  // Reset bei Fehler
             });
 
         return true;
