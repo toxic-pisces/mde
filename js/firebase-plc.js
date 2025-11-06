@@ -192,12 +192,24 @@ const FirebasePLC = {
         console.log('   ✅ Setze Maschinenstatus auf STÖRUNG');
         state.machineState = 'störung';
 
+        // Stoppe Live Timeline Update
+        if (state.liveUpdateInterval) {
+            clearInterval(state.liveUpdateInterval);
+            state.liveUpdateInterval = null;
+            console.log('   ℹ Live Timeline Update gestoppt');
+        }
+
+        // Update Timeline ein letztes Mal
+        if (typeof updateTimeline === 'function') {
+            updateTimeline();
+        }
+
         // Triggere Störungs-Modal - versuche alle Methoden
         if (typeof window.openStörungModal === 'function') {
             console.log('   ✅ Öffne Störungs-Modal');
             setTimeout(() => {
                 window.openStörungModal();
-            }, 500);
+            }, 700);
         } else {
             console.error('   ✗ openStörungModal Funktion nicht gefunden!');
             console.log('   ℹ Verfügbare window Funktionen:', Object.keys(window).filter(k => k.toLowerCase().includes('störung')));
@@ -242,6 +254,18 @@ const FirebasePLC = {
         console.log('   ✅ Setze Maschinenstatus auf IDLE (bereit)');
         state.machineState = 'idle';
         state.prüfungAktiv = false;
+
+        // Stoppe Live Timeline Update
+        if (state.liveUpdateInterval) {
+            clearInterval(state.liveUpdateInterval);
+            state.liveUpdateInterval = null;
+            console.log('   ℹ Live Timeline Update gestoppt');
+        }
+
+        // Update Timeline ein letztes Mal
+        if (typeof updateTimeline === 'function') {
+            updateTimeline();
+        }
 
         // Maschine aktivieren falls deaktiviert
         if (!state.machineActive) {
@@ -294,9 +318,29 @@ const FirebasePLC = {
             state.machineActive = true;
         }
 
+        // SOFORT Prüfung als aktiv markieren für Timeline
+        console.log('   ✅ Setze prüfungAktiv = true für Timeline');
+        state.prüfungAktiv = true;
+        state.prüfungStartzeit = new Date();
+
+        // Starte Live Timeline Update
+        if (state.liveUpdateInterval) {
+            clearInterval(state.liveUpdateInterval);
+        }
+        state.liveUpdateInterval = setInterval(() => {
+            if (typeof updateTimeline === 'function') {
+                updateTimeline();
+            }
+        }, 1000);
+
+        // Update Timeline sofort
+        if (typeof updateTimeline === 'function') {
+            updateTimeline();
+        }
+
         // Im Auto-Mode: Starte Prüfung Zyklus 1
         if (state.modeVersion === 1) {
-            console.log('   ✅ Auto-Mode: Starte Prüfung Zyklus 1');
+            console.log('   ✅ Auto-Mode: Öffne Barcode Scanner');
 
             // Versuche AutoMode
             if (typeof AutoMode !== 'undefined' && AutoMode.startPrüfungZyklus1) {
@@ -332,6 +376,9 @@ const FirebasePLC = {
         }
         if (typeof updateContentGlow === 'function') {
             updateContentGlow();
+        }
+        if (typeof updatePartSection === 'function') {
+            updatePartSection();
         }
     },
 
