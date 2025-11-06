@@ -1,0 +1,13 @@
+{
+  "plc": {
+    "status": 10,
+    "testData": {
+      "io": 0,
+      "nio": 0,
+      "total": 0,
+      "startzeit": null,
+      "endzeit": null
+    },
+    "lastUpdate": "2025-11-06T00:00:00.000Z"
+  }
+}
