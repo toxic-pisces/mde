@@ -2849,5 +2849,37 @@
             updateContentGlow();
         }
     </script>
+
+    <!-- Firebase SDK (v9 Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <!-- Firebase Configuration -->
+    <script src="./js/firebase-config.js"></script>
+
+    <!-- Firebase PLC Simulator -->
+    <script src="./js/firebase-plc.js"></script>
+
+    <!-- Firebase Initialisierung -->
+    <script>
+        // Firebase initialisieren wenn Seite geladen ist
+        window.addEventListener('DOMContentLoaded', function() {
+            if (typeof initFirebase === 'function') {
+                const success = initFirebase();
+                if (success) {
+                    console.log('🚀 Firebase PLC Simulator bereit');
+                    console.log('');
+                    console.log('📋 Verfügbare Status-Codes:');
+                    console.log('   -10 = Störung (Malfunction)');
+                    console.log('    10 = Betriebsbereit (Ready)');
+                    console.log('    20 = Test starten (Productive)');
+                    console.log('     0 = Heruntergefahren (Shutdown)');
+                    console.log('');
+                    console.log('💡 Tipp: Ändern Sie den Wert "plc/status" in der Firebase Realtime Database');
+                    console.log('   um verschiedene Aktionen zu simulieren.');
+                }
+            }
+        });
+    </script>
 </body>
 </html>
