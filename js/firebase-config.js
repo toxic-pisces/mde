@@ -21,6 +21,11 @@ function initFirebase() {
         // Firebase App initialisieren
         app = firebase.initializeApp(firebaseConfig);
         database = firebase.database();
+
+        // Exportiere die Firebase-Instanzen (NACH Initialisierung!)
+        window.firebaseApp = app;
+        window.firebaseDatabase = database;
+
         console.log('✓ Firebase erfolgreich initialisiert');
         return true;
     } catch (error) {
@@ -29,7 +34,5 @@ function initFirebase() {
     }
 }
 
-// Exportiere die Firebase-Instanzen
-window.firebaseApp = app;
-window.firebaseDatabase = database;
+// Exportiere die Init-Funktion
 window.initFirebase = initFirebase;
