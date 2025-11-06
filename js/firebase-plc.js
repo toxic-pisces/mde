@@ -154,26 +154,25 @@ const FirebasePLC = {
 
         const state = window.mdeState;
 
-        // Prüfe ob bereits im Störungsmodus
-        if (state.machineState === 'störung') {
-            console.log('   ℹ Maschine ist bereits im Störungsmodus');
-            return;
-        }
-
         // Wenn eine Prüfung läuft, beende sie
         if (state.prüfungAktiv) {
-            console.log('   Laufende Prüfung wird abgebrochen');
+            console.log('   ℹ Laufende Prüfung wird abgebrochen');
             state.prüfungAktiv = false;
         }
 
         // Setze Maschinenstatus auf Störung
+        console.log('   ✅ Setze Maschinenstatus auf STÖRUNG');
         state.machineState = 'störung';
 
-        // Triggere Störungs-Modal wenn im Auto-Mode
-        if (state.modeVersion === 1 && typeof window.openStörungModal === 'function') {
+        // Triggere Störungs-Modal - versuche alle Methoden
+        if (typeof window.openStörungModal === 'function') {
+            console.log('   ✅ Öffne Störungs-Modal');
             setTimeout(() => {
                 window.openStörungModal();
             }, 500);
+        } else {
+            console.error('   ✗ openStörungModal Funktion nicht gefunden!');
+            console.log('   ℹ Verfügbare window Funktionen:', Object.keys(window).filter(k => k.toLowerCase().includes('störung')));
         }
 
         // Update UI
@@ -192,29 +191,26 @@ const FirebasePLC = {
 
         const state = window.mdeState;
 
-        // Setze Status auf idle wenn nicht bereits
-        if (state.machineState !== 'idle') {
-            state.machineState = 'idle';
-            state.prüfungAktiv = false;
-
-            console.log('   Maschine in Idle-Modus versetzt');
-        }
+        // Setze Status auf idle
+        console.log('   ✅ Setze Maschinenstatus auf IDLE (bereit)');
+        state.machineState = 'idle';
+        state.prüfungAktiv = false;
 
         // Maschine aktivieren falls deaktiviert
         if (!state.machineActive) {
+            console.log('   ✅ Aktiviere Maschine');
             state.machineActive = true;
-            if (typeof toggleStatus === 'function') {
-                // Update UI toggle
-                const toggle = document.getElementById('statusToggle');
-                const text = document.getElementById('statusText');
-                if (toggle) {
-                    toggle.classList.remove('inactive');
-                    toggle.classList.add('active');
-                }
-                if (text) {
-                    text.textContent = 'In Betrieb';
-                }
-            }
+        }
+
+        // Update UI Toggle
+        const toggle = document.getElementById('statusToggle');
+        const text = document.getElementById('statusText');
+        if (toggle) {
+            toggle.classList.remove('inactive');
+            toggle.classList.add('active');
+        }
+        if (text) {
+            text.textContent = 'In Betrieb';
         }
 
         // Update UI
@@ -233,30 +229,57 @@ const FirebasePLC = {
 
         const state = window.mdeState;
 
-        // Prüfe ob Maschine bereit ist
+        // Setze Maschine auf idle falls nicht schon
         if (state.machineState !== 'idle') {
-            console.warn('   ⚠ Maschine ist nicht im Idle-Modus. Aktueller Status:', state.machineState);
-            this.showNotification('Fehler: Maschine nicht bereit für Test', 'error');
-            return;
+            console.log(`   ⚠ Maschine war in '${state.machineState}' - wird auf 'idle' gesetzt`);
+            state.machineState = 'idle';
+            state.prüfungAktiv = false;
+        }
+
+        // Stelle sicher dass Maschine aktiv ist
+        if (!state.machineActive) {
+            console.log('   ℹ Maschine wird aktiviert');
+            state.machineActive = true;
         }
 
         // Im Auto-Mode: Starte Prüfung Zyklus 1
         if (state.modeVersion === 1) {
+            console.log('   ✅ Auto-Mode: Starte Prüfung Zyklus 1');
+
+            // Versuche AutoMode
             if (typeof AutoMode !== 'undefined' && AutoMode.startPrüfungZyklus1) {
-                console.log('   Auto-Mode: Starte Prüfung Zyklus 1');
                 setTimeout(() => {
                     AutoMode.startPrüfungZyklus1();
                 }, 500);
             }
+            // Falls AutoMode nicht verfügbar, öffne direkt Barcode Scanner
+            else if (typeof window.openBarcodeScanner === 'function') {
+                console.log('   ℹ AutoMode nicht verfügbar - öffne Barcode Scanner direkt');
+                setTimeout(() => {
+                    window.openBarcodeScanner();
+                }, 500);
+            } else {
+                console.error('   ✗ Keine Methode zum Starten der Prüfung gefunden!');
+            }
         }
         // Im Manual-Mode: Öffne Teil-Auswahl
         else if (state.modeVersion === 2) {
+            console.log('   ✅ Manual-Mode: Öffne Teil-Auswahl');
             if (typeof ManualMode !== 'undefined' && ManualMode.openTeilAuswahlModal) {
-                console.log('   Manual-Mode: Öffne Teil-Auswahl');
                 setTimeout(() => {
                     ManualMode.openTeilAuswahlModal();
                 }, 500);
+            } else {
+                console.error('   ✗ ManualMode nicht verfügbar!');
             }
+        }
+
+        // Update UI
+        if (typeof AutoMode !== 'undefined' && AutoMode.updateButton) {
+            AutoMode.updateButton();
+        }
+        if (typeof updateContentGlow === 'function') {
+            updateContentGlow();
         }
     },
 
