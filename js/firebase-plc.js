@@ -174,18 +174,10 @@ const FirebasePLC = {
 
         const state = window.mdeState;
 
-        // Wenn eine Prüfung läuft, öffne erst das Summary Modal
+        // Wenn eine Prüfung läuft, beende sie einfach (KEIN Modal!)
         if (state.prüfungAktiv) {
-            console.log('   ℹ Laufende Prüfung wird beendet - öffne Summary Modal');
-
-            const zyklus = state.currentZyklus || 1;
-
-            // Öffne Prüfung Summary Modal
-            if (typeof PrüfungSummary !== 'undefined' && PrüfungSummary.open) {
-                setTimeout(() => {
-                    PrüfungSummary.open(zyklus);
-                }, 300);
-            }
+            console.log('   ℹ Laufende Prüfung wird beendet (ohne Modal)');
+            state.prüfungAktiv = false;
         }
 
         // Setze Maschinenstatus auf Störung
@@ -236,18 +228,10 @@ const FirebasePLC = {
 
         const state = window.mdeState;
 
-        // Wenn eine Prüfung läuft, öffne erst das Summary Modal
+        // Wenn eine Prüfung läuft, beende sie einfach (KEIN Modal!)
         if (state.prüfungAktiv) {
-            console.log('   ℹ Laufende Prüfung wird beendet - öffne Summary Modal');
-
-            const zyklus = state.currentZyklus || 1;
-
-            // Öffne Prüfung Summary Modal
-            if (typeof PrüfungSummary !== 'undefined' && PrüfungSummary.open) {
-                setTimeout(() => {
-                    PrüfungSummary.open(zyklus);
-                }, 300);
-            }
+            console.log('   ℹ Laufende Prüfung wird beendet (ohne Modal)');
+            state.prüfungAktiv = false;
         }
 
         // Setze Status auf idle
@@ -323,6 +307,12 @@ const FirebasePLC = {
         state.prüfungAktiv = true;
         state.prüfungStartzeit = new Date();
 
+        console.log('   📊 Timeline Debug:');
+        console.log('     - state.prüfungAktiv:', state.prüfungAktiv);
+        console.log('     - state.prüfungStartzeit:', state.prüfungStartzeit);
+        console.log('     - updateTimeline exists:', typeof updateTimeline);
+        console.log('     - window.mdeState === state:', window.mdeState === state);
+
         // Starte Live Timeline Update
         if (state.liveUpdateInterval) {
             clearInterval(state.liveUpdateInterval);
@@ -330,12 +320,19 @@ const FirebasePLC = {
         state.liveUpdateInterval = setInterval(() => {
             if (typeof updateTimeline === 'function') {
                 updateTimeline();
+            } else {
+                console.error('❌ updateTimeline ist keine Funktion!');
             }
         }, 1000);
 
         // Update Timeline sofort
         if (typeof updateTimeline === 'function') {
+            console.log('   ✅ Rufe updateTimeline() auf');
             updateTimeline();
+            console.log('   ✅ updateTimeline() abgeschlossen');
+        } else {
+            console.error('   ❌ updateTimeline Funktion nicht gefunden!');
+            console.log('   ℹ Verfügbare Funktionen:', Object.keys(window).filter(k => k.toLowerCase().includes('timeline')));
         }
 
         // Im Auto-Mode: Starte Prüfung Zyklus 1
